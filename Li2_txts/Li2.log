@@ -1,0 +1,948 @@
+ Entering Gaussian System, Link 0=gdv
+ Input=Li2.gjf
+ Output=Li2.log
+ Initial command:
+ /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l1.exe "/tmp/t566p276_57132889/Gau-11845.inp" -scrdir="/tmp/t566p276_57132889/" -exedir="/kuhpc/work/caricato/t566p276/gauopen_stuff/exe-dir:/panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/bsd:/panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/local:/panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/extras:/panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv"
+ Entering Link 1 = /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l1.exe PID=     11846.
+  
+ Copyright (c) 1988-2024, Gaussian, Inc.  All Rights Reserved.
+  
+ This is the private, development version of
+ the Gaussian(R) DV system of programs. It is based on
+ the Gaussian(R) 16 system (copyright 2016, Gaussian, Inc.),
+ the Gaussian(R) 09 system (copyright 2009, Gaussian, Inc.),
+ the Gaussian(R) 03 system (copyright 2003, Gaussian, Inc.),
+ the Gaussian(R) 98 system (copyright 1998, Gaussian, Inc.),
+ the Gaussian(R) 94 system (copyright 1995, Gaussian, Inc.),
+ the Gaussian 92(TM) system (copyright 1992, Gaussian, Inc.),
+ the Gaussian 90(TM) system (copyright 1990, Gaussian, Inc.),
+ the Gaussian 88(TM) system (copyright 1988, Gaussian, Inc.),
+ the Gaussian 86(TM) system (copyright 1986, Carnegie Mellon
+ University), and the Gaussian 82(TM) system (copyright 1983,
+ Carnegie Mellon University). Gaussian is a federally registered
+ trademark of Gaussian, Inc.
+  
+ This software contains proprietary and confidential information,
+ including trade secrets, belonging to Gaussian, Inc.
+  
+ This software is provided under written license and may be
+ used, copied, transmitted, or stored only in accord with that
+ written license.
+  
+ The following legend is applicable only to US Government
+ contracts under FAR:
+  
+                    RESTRICTED RIGHTS LEGEND
+  
+ Use, reproduction and disclosure by the US Government is
+ subject to restrictions as set forth in subparagraphs (a)
+ and (c) of the Commercial Computer Software - Restricted
+ Rights clause in FAR 52.227-19.
+  
+ Gaussian, Inc.
+ 340 Quinnipiac St., Bldg. 40, Wallingford CT 06492
+  
+  
+ ---------------------------------------------------------------
+ Warning -- This program may not be used in any manner that
+ competes with the business of Gaussian, Inc. or will provide
+ assistance to any competitor of Gaussian, Inc.  The licensee
+ of this program is prohibited from giving any competitor of
+ Gaussian, Inc. access to this program.  By using this program,
+ the user acknowledges that Gaussian, Inc. is engaged in the
+ business of creating and licensing software in the field of
+ computational chemistry and represents and warrants to the
+ licensee that it is not a competitor of Gaussian, Inc. and that
+ it will not use this program in any manner prohibited above.
+ ---------------------------------------------------------------
+  
+
+ Cite this work as:
+ Gaussian Development Version, Revision J.26+,
+ M. J. Frisch, G. W. Trucks, G. Scalmani, J. R. Cheeseman, X. Li, 
+ J. Bloino, B. G. Janesko, A. V. Marenich, J. Zheng, F. Lipparini, 
+ A. Jenkins, A. Liu, H. Liu, H. B. Schlegel, G. E. Scuseria, 
+ M. A. Robb, V. Barone, G. A. Petersson, H. Nakatsuji, B. Mennucci, 
+ C. Adamo, N. Rega, M. Caricato, H. P. Hratchian, J. V. Ortiz, 
+ A. F. Izmaylov, H. Hu, C. Liao, J. L. Sonnenberg, D. Williams-Young, 
+ F. Ding, R. Gomperts, F. Egidi, J. Goings, B. Peng, A. Petrone, 
+ T. Henderson, D. Ranasinghe, V. G. Zakrzewski, J. Gao, G. Zheng, 
+ W. Liang, M. Hada, M. Ehara, K. Toyota, R. Fukuda, J. Hasegawa, 
+ M. Ishida, T. Nakajima, Y. Honda, O. Kitao, H. Nakai, T. Vreven, 
+ K. Throssell, J. A. Montgomery, Jr., J. E. Peralta, F. Ogliaro, 
+ M. J. Bearpark, J. J. Heyd, E. N. Brothers, K. N. Kudin, 
+ V. N. Staroverov, T. A. Keith, R. Kobayashi, J. Normand, 
+ K. Raghavachari, A. P. Rendell, J. C. Burant, S. S. Iyengar, 
+ M. Cossi, J. M. Millam, M. Klene, R. Cammi, R. L. Martin, O. Farkas, 
+ J. B. Foresman, and D. J. Fox, Gaussian, Inc., Wallingford CT, 2023.
+ 
+ *******************************************
+ Gaussian DV:  ES64L-GDVRevJ.26+  5-Jan-2024
+                  7-Mar-2024 
+ *******************************************
+ %mem=10gb
+ %nproc=10
+ Will use up to   10 processors via shared memory.
+ %chk=Li2.chk
+ ----------------------------------------------------------------------
+ #p HF/STO-3G sp nosymm output=baf extralinks=l316 noraff scf=conventio
+ nal
+ ----------------------------------------------------------------------
+ 1/37=-1,38=1,172=1/1;
+ 2/12=2,15=1/2;
+ 3/6=3,25=20,28=1,30=1,160=2000000/1,2,3,8,20,16;
+ 4//1;
+ 5/5=1,29=1/2;
+ 6/7=2,8=2,9=2,10=2,28=1,125=2000000/1;
+ 99/5=1,6=100000,9=1,125=2000000/99;
+ Leave Link    1 at Thu Mar  7 09:34:59 2024, MaxMem=  1342177280 cpu:               0.0 elap:               0.0
+ (Enter /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l101.exe)
+ -----
+ test1
+ -----
+ Symbolic Z-matrix:
+ Charge =     0 Multiplicity =     1
+ Li                    0.        0.        0. 
+ Li                    1.1       0.        0. 
+ 
+ ITRead=  0  0
+ MicOpt= -1 -1
+ NAtoms=      2 NQM=        2 NQMF=       0 NMMI=      0 NMMIF=      0
+                NMic=       0 NMicF=      0.
+                    Isotopes and Nuclear Properties:
+ (Nuclear quadrupole moments (NQMom) in fm**2, nuclear magnetic moments (NMagM)
+  in nuclear magnetons)
+
+  Atom         1           2
+ IAtWgt=           7           7
+ AtmWgt=   7.0160045   7.0160045
+ NucSpn=           3           3
+ AtZEff=    0.000000    0.000000
+ NQMom=   -4.0100000  -4.0100000
+ NMagM=    3.2564240   3.2564240
+ AtZNuc=   3.0000000   3.0000000
+ Leave Link  101 at Thu Mar  7 09:35:00 2024, MaxMem=  1342177280 cpu:               0.1 elap:               0.1
+ (Enter /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l202.exe)
+                          Input orientation:                          
+ ---------------------------------------------------------------------
+ Center     Atomic      Atomic             Coordinates (Angstroms)
+ Number     Number       Type             X           Y           Z
+ ---------------------------------------------------------------------
+      1          3           0        0.000000    0.000000    0.000000
+      2          3           0        1.100000    0.000000    0.000000
+ ---------------------------------------------------------------------
+ Symmetry turned off by external request.
+ Stoichiometry    Li2
+ Framework group  D*H[C*(Li.Li)]
+ Deg. of freedom     1
+ Full point group                 D*H     NOp   8
+ Rotational constants (GHZ):           0.0000000         119.0616690         119.0616690
+ Leave Link  202 at Thu Mar  7 09:35:00 2024, MaxMem=  1342177280 cpu:               0.0 elap:               0.1
+ (Enter /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l301.exe)
+ Standard basis: STO-3G (5D, 7F)
+ Ernie: Thresh=  0.10000D-02 Tol=  0.10000D-05 Strict=F.
+    10 basis functions,    30 primitive gaussians,    10 cartesian basis functions
+     3 alpha electrons        3 beta electrons
+       nuclear repulsion energy         4.3296317257 Hartrees.
+ IExCor=         0 DFT=F Ex=HF Corr=None N6=None ScaHFX=  1.000000
+ ScaDFX=  1.000000  1.000000  1.000000  1.000000  1.000000  0.000000
+ ScaDFX=  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000
+ IRadAn=      5 IRanWt=     -1 IRanGd=            0 ICorTp=0 IEmpDi=  4
+ NAtoms=    2 NActive=    2 NUniq=    2 SFac= 1.00D+00 NAtFMM=   60 NAOKFM=F Big=F
+ Integral buffers will be    131072 words long.
+ Regular integral format.
+ Two-electron integral symmetry is turned off.
+ Leave Link  301 at Thu Mar  7 09:35:00 2024, MaxMem=  1342177280 cpu:               0.0 elap:               0.1
+ (Enter /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l302.exe)
+ NPDir=0 NMtPBC=     1 NCelOv=     1 NCel=       1 NClECP=     1 NCelD=      1
+         NCelK=      1 NCelE2=     1 NClLst=     1 CellRange=     0.0.
+ One-electron integrals computed using PRISM.
+ NBasis=    10 RedAO= T EigKep=  4.25D-03  NBF=    10
+ NBsUse=    10 1.00D-06 EigRej= -1.00D+00 NBFU=    10
+ Leave Link  302 at Thu Mar  7 09:35:00 2024, MaxMem=  1342177280 cpu:               0.3 elap:               0.2
+ (Enter /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l303.exe)
+ DipDrv:  MaxL=1.
+ Leave Link  303 at Thu Mar  7 09:35:01 2024, MaxMem=  1342177280 cpu:               0.0 elap:               0.3
+ (Enter /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l308.exe)
+ Leave Link  308 at Thu Mar  7 09:35:01 2024, MaxMem=  1342177280 cpu:               0.0 elap:               0.2
+ (Enter /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l320.exe)
+ Enter DskPsm, NBasis=  10 NBas6D=  10 NShell=   4 IDoSP=4 IDer=0 ISMode=0.
+ Out2e will use a cutoff of  1.00D-10
+ FoFCou: FMM=F IPFlag=           0 FMFlag=           0 FMFlg1=           0
+         NFxFlg=           0 DoJE=F BraDBF=F KetDBF=F FulRan=T
+         wScrn=  0.000000 ICntrl=       600 IOpCl=  9 I1Cent=           0 NGrid=           0
+         NMat0=    0 NMatS0=      0 NMatT0=    0 NMatD0=    0 NMtDS0=    0 NMtDT0=    0
+ Symmetry not used in FoFCou.
+          512 integrals produced for a total of          512.
+ Leave Link  320 at Thu Mar  7 09:35:01 2024, MaxMem=  1342177280 cpu:               0.3 elap:               0.2
+ (Enter /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l316.exe)
+
+
+
+ *** Dumping Two-Electron integrals ***
+
+
+
+ ISMode= 0 Mode= 1 IBase=         1 IBasD=         1    131073
+ DBase=         0 DBasD=         0         0 IReset=         2    131070
+ IntCnt=       512 ITotal=       512 NWIIB=    131072 ISym2E=0
+ I=  8 J=  7 K=  3 L=  2 Int=  0.254540998563D-01
+ I=  9 J=  7 K=  4 L=  2 Int=  0.497127345656D-01
+ I=  9 J=  8 K=  4 L=  2 Int= -0.164710406507D-01
+ I= 10 J=  7 K=  5 L=  2 Int=  0.497127345656D-01
+ I= 10 J=  8 K=  5 L=  2 Int= -0.164710406507D-01
+ I=  9 J=  7 K=  4 L=  3 Int=  0.164710406507D-01
+ I=  9 J=  8 K=  4 L=  3 Int=  0.271993080105D-02
+ I= 10 J=  7 K=  5 L=  3 Int=  0.164710406507D-01
+ I= 10 J=  8 K=  5 L=  3 Int=  0.271993080105D-02
+ I= 10 J=  9 K=  5 L=  4 Int=  0.112364108453D-01
+ I=  9 J=  8 K=  7 L=  4 Int= -0.104635935350D-01
+ I=  9 J=  7 K=  8 L=  4 Int= -0.236601513011D-01
+ I=  9 J=  4 K=  8 L=  7 Int= -0.236601513011D-01
+ I= 10 J=  8 K=  7 L=  5 Int= -0.104635935350D-01
+ I= 10 J=  7 K=  8 L=  5 Int= -0.236601513011D-01
+ I= 10 J=  5 K=  8 L=  7 Int= -0.236601513011D-01
+ I=  8 J=  3 K=  7 L=  2 Int=  0.753732312883D-01
+ I=  9 J=  4 K=  7 L=  2 Int=  0.189066805891D+00
+ I= 10 J=  5 K=  7 L=  2 Int=  0.189066805891D+00
+ I=  9 J=  4 K=  8 L=  2 Int= -0.100792491411D+00
+ I= 10 J=  5 K=  8 L=  2 Int= -0.100792491411D+00
+ I=  8 J=  2 K=  7 L=  3 Int= -0.294446343339D-01
+ I=  9 J=  4 K=  7 L=  3 Int=  0.100792491411D+00
+ I= 10 J=  5 K=  7 L=  3 Int=  0.100792491411D+00
+ I=  9 J=  4 K=  8 L=  3 Int=  0.614151998119D-01
+ I= 10 J=  5 K=  8 L=  3 Int=  0.614151998119D-01
+ I=  9 J=  2 K=  7 L=  4 Int=  0.426782588519D-01
+ I=  9 J=  3 K=  7 L=  4 Int=  0.262441945159D-01
+ I=  9 J=  2 K=  8 L=  4 Int= -0.262441945159D-01
+ I=  9 J=  3 K=  8 L=  4 Int= -0.866684457561D-02
+ I= 10 J=  5 K=  9 L=  4 Int=  0.158393433308D+00
+ I= 10 J=  2 K=  7 L=  5 Int=  0.426782588519D-01
+ I= 10 J=  3 K=  7 L=  5 Int=  0.262441945159D-01
+ I= 10 J=  2 K=  8 L=  5 Int= -0.262441945159D-01
+ I= 10 J=  3 K=  8 L=  5 Int= -0.866684457561D-02
+ I= 10 J=  4 K=  9 L=  5 Int=  0.953772891854D-02
+ I=  7 J=  3 K=  6 L=  2 Int=  0.500667859543D-01
+ I=  8 J=  3 K=  6 L=  2 Int=  0.171567166646D-01
+ I=  9 J=  4 K=  6 L=  2 Int=  0.563165061243D-01
+ I= 10 J=  5 K=  6 L=  2 Int=  0.563165061243D-01
+ I=  7 J=  2 K=  6 L=  3 Int=  0.103544806852D+00
+ I=  8 J=  2 K=  6 L=  3 Int= -0.429926685601D-01
+ I=  9 J=  4 K=  6 L=  3 Int=  0.857481873082D-01
+ I= 10 J=  5 K=  6 L=  3 Int=  0.857481873082D-01
+ I=  9 J=  2 K=  6 L=  4 Int=  0.509520196125D-02
+ I=  9 J=  3 K=  6 L=  4 Int=  0.504928600586D-02
+ I= 10 J=  2 K=  6 L=  5 Int=  0.509520196125D-02
+ I= 10 J=  3 K=  6 L=  5 Int=  0.504928600586D-02
+ I=  7 J=  1 K=  3 L=  2 Int=  0.218644559613D-02
+ I=  8 J=  1 K=  3 L=  2 Int= -0.196156600541D-02
+ I=  9 J=  1 K=  4 L=  2 Int=  0.615398055505D-02
+ I=  9 J=  1 K=  4 L=  3 Int=  0.822280669755D-03
+ I= 10 J=  1 K=  5 L=  2 Int=  0.615398055505D-02
+ I= 10 J=  1 K=  5 L=  3 Int=  0.822280669755D-03
+ I=  8 J=  7 K=  6 L=  2 Int= -0.218644559613D-02
+ I=  8 J=  7 K=  6 L=  3 Int= -0.196156600541D-02
+ I=  9 J=  7 K=  6 L=  4 Int=  0.615398055505D-02
+ I=  9 J=  8 K=  6 L=  4 Int= -0.822280669755D-03
+ I= 10 J=  7 K=  6 L=  5 Int=  0.615398055505D-02
+ I= 10 J=  8 K=  6 L=  5 Int= -0.822280669755D-03
+ I=  8 J=  2 K=  7 L=  6 Int= -0.312131105179D-01
+ I=  8 J=  3 K=  7 L=  6 Int=  0.213284571628D-01
+ I=  9 J=  4 K=  7 L=  6 Int=  0.641934700573D-01
+ I= 10 J=  5 K=  7 L=  6 Int=  0.641934700573D-01
+ I=  8 J=  6 K=  7 L=  2 Int= -0.388818021522D-02
+ I=  8 J=  6 K=  7 L=  3 Int=  0.157772718104D-02
+ I=  9 J=  4 K=  8 L=  6 Int= -0.397672538811D-02
+ I= 10 J=  5 K=  8 L=  6 Int= -0.397672538811D-02
+ I=  9 J=  6 K=  7 L=  4 Int=  0.872541136400D-02
+ I=  9 J=  6 K=  8 L=  4 Int= -0.397672538811D-02
+ I= 10 J=  6 K=  7 L=  5 Int=  0.872541136400D-02
+ I= 10 J=  6 K=  8 L=  5 Int= -0.397672538811D-02
+ I=  8 J=  2 K=  7 L=  1 Int= -0.500667859543D-01
+ I=  8 J=  3 K=  7 L=  1 Int=  0.171567166646D-01
+ I=  9 J=  4 K=  7 L=  1 Int=  0.563165061243D-01
+ I= 10 J=  5 K=  7 L=  1 Int=  0.563165061243D-01
+ I=  8 J=  1 K=  7 L=  2 Int= -0.103544806852D+00
+ I=  8 J=  1 K=  7 L=  3 Int= -0.429926685601D-01
+ I=  9 J=  4 K=  8 L=  1 Int= -0.857481873082D-01
+ I= 10 J=  5 K=  8 L=  1 Int= -0.857481873082D-01
+ I=  9 J=  1 K=  7 L=  4 Int=  0.509520196125D-02
+ I=  9 J=  1 K=  8 L=  4 Int= -0.504928600586D-02
+ I= 10 J=  1 K=  7 L=  5 Int=  0.509520196125D-02
+ I= 10 J=  1 K=  8 L=  5 Int= -0.504928600586D-02
+ I=  7 J=  3 K=  2 L=  1 Int=  0.312131105179D-01
+ I=  8 J=  3 K=  2 L=  1 Int=  0.213284571628D-01
+ I=  9 J=  4 K=  2 L=  1 Int=  0.641934700573D-01
+ I= 10 J=  5 K=  2 L=  1 Int=  0.641934700573D-01
+ I=  7 J=  2 K=  3 L=  1 Int=  0.388818021522D-02
+ I=  8 J=  2 K=  3 L=  1 Int=  0.157772718104D-02
+ I=  9 J=  4 K=  3 L=  1 Int=  0.397672538811D-02
+ I= 10 J=  5 K=  3 L=  1 Int=  0.397672538811D-02
+ I=  9 J=  2 K=  4 L=  1 Int=  0.872541136400D-02
+ I=  9 J=  3 K=  4 L=  1 Int=  0.397672538811D-02
+ I= 10 J=  2 K=  5 L=  1 Int=  0.872541136400D-02
+ I= 10 J=  3 K=  5 L=  1 Int=  0.397672538811D-02
+ I=  7 J=  1 K=  6 L=  2 Int=  0.221432000437D-01
+ I=  8 J=  1 K=  6 L=  2 Int= -0.333808065551D-01
+ I=  7 J=  1 K=  6 L=  3 Int=  0.333808065551D-01
+ I=  8 J=  1 K=  6 L=  3 Int= -0.502652704125D-01
+ I=  9 J=  1 K=  6 L=  4 Int=  0.816675174882D-03
+ I= 10 J=  1 K=  6 L=  5 Int=  0.816675174882D-03
+ I=  7 J=  6 K=  2 L=  1 Int=  0.269650179509D-01
+ I=  8 J=  6 K=  2 L=  1 Int= -0.666881086306D-02
+ I=  7 J=  6 K=  3 L=  1 Int=  0.666881086306D-02
+ I=  8 J=  6 K=  3 L=  1 Int= -0.241659588555D-02
+ I=  9 J=  6 K=  4 L=  1 Int=  0.201167090432D-02
+ I= 10 J=  6 K=  5 L=  1 Int=  0.201167090432D-02
+ I=  8 J=  7 K=  6 L=  1 Int= -0.543968449003D-02
+ I=  7 J=  2 K=  6 L=  1 Int=  0.208581176659D-01
+ I=  8 J=  2 K=  6 L=  1 Int= -0.128808730053D-01
+ I=  7 J=  3 K=  6 L=  1 Int=  0.128808730053D-01
+ I=  8 J=  3 K=  6 L=  1 Int=  0.303709377135D-02
+ I=  9 J=  4 K=  6 L=  1 Int=  0.173029729706D-01
+ I= 10 J=  5 K=  6 L=  1 Int=  0.173029729706D-01
+ I=  6 J=  1 K=  3 L=  2 Int=  0.543968449003D-02
+ I=  6 J=  3 K=  2 L=  1 Int=  0.367836498464D-01
+ I=  8 J=  6 K=  7 L=  1 Int= -0.620376540249D-02
+ I=  6 J=  2 K=  3 L=  1 Int=  0.620376540249D-02
+ I=  8 J=  1 K=  7 L=  6 Int= -0.367836498464D-01
+ I=  9 J=  4 K=  3 L=  2 Int=  0.236601513011D-01
+ I= 10 J=  5 K=  3 L=  2 Int=  0.236601513011D-01
+ I=  9 J=  3 K=  4 L=  2 Int=  0.236601513011D-01
+ I= 10 J=  3 K=  5 L=  2 Int=  0.236601513011D-01
+ I=  9 J=  2 K=  4 L=  3 Int=  0.104635935350D-01
+ I= 10 J=  2 K=  5 L=  3 Int=  0.104635935350D-01
+ I=  8 J=  7 K=  2 L=  1 Int= -0.282328684350D-01
+ I=  8 J=  7 K=  3 L=  1 Int=  0.959250266610D-03
+ I=  9 J=  7 K=  4 L=  1 Int=  0.844622996339D-02
+ I=  9 J=  8 K=  4 L=  1 Int= -0.541066337934D-02
+ I= 10 J=  7 K=  5 L=  1 Int=  0.844622996339D-02
+ I= 10 J=  8 K=  5 L=  1 Int= -0.541066337934D-02
+ I=  7 J=  6 K=  3 L=  2 Int=  0.282328684350D-01
+ I=  8 J=  6 K=  3 L=  2 Int=  0.959250266610D-03
+ I=  9 J=  6 K=  4 L=  2 Int=  0.844622996339D-02
+ I=  9 J=  6 K=  4 L=  3 Int=  0.541066337934D-02
+ I= 10 J=  6 K=  5 L=  2 Int=  0.844622996339D-02
+ I= 10 J=  6 K=  5 L=  3 Int=  0.541066337934D-02
+ I=  6 J=  6 K=  6 L=  6 Int=  0.168039515313D+01
+ I=  8 J=  6 K=  6 L=  1 Int= -0.270518943100D-02
+ I=  7 J=  6 K=  6 L=  1 Int=  0.112568888610D-01
+ I=  6 J=  6 K=  6 L=  3 Int=  0.384429098583D+00
+ I=  6 J=  6 K=  6 L=  2 Int=  0.241719456354D+00
+ I=  6 J=  6 K=  6 L=  1 Int=  0.561445532269D-01
+ I=  6 J=  3 K=  6 L=  1 Int=  0.160308667821D-01
+ I=  6 J=  2 K=  6 L=  1 Int=  0.103386466868D-01
+ I=  6 J=  6 K=  3 L=  1 Int=  0.318726141176D-01
+ I=  6 J=  6 K=  2 L=  1 Int=  0.114699404205D+00
+ I=  8 J=  1 K=  6 L=  6 Int= -0.156044168520D+00
+ I=  7 J=  1 K=  6 L=  6 Int=  0.104142384986D+00
+ I= 10 J=  5 K=  6 L=  6 Int=  0.270757688160D+00
+ I=  9 J=  4 K=  6 L=  6 Int=  0.270757688160D+00
+ I=  8 J=  3 K=  6 L=  6 Int=  0.864441848526D-01
+ I=  7 J=  3 K=  6 L=  6 Int=  0.256720182152D+00
+ I=  8 J=  2 K=  6 L=  6 Int= -0.131026499029D+00
+ I=  7 J=  2 K=  6 L=  6 Int=  0.331637489237D+00
+ I= 10 J=  6 K=  6 L=  5 Int=  0.353219716687D-02
+ I=  9 J=  6 K=  6 L=  4 Int=  0.353219716687D-02
+ I=  8 J=  6 K=  6 L=  3 Int= -0.155282997805D-02
+ I=  7 J=  6 K=  6 L=  3 Int=  0.700141189080D-01
+ I=  8 J=  6 K=  6 L=  2 Int= -0.123704892939D-02
+ I=  7 J=  6 K=  6 L=  2 Int=  0.445606592696D-01
+ I= 10 J=  1 K=  5 L=  1 Int=  0.353219716687D-02
+ I=  9 J=  1 K=  4 L=  1 Int=  0.353219716687D-02
+ I=  8 J=  1 K=  3 L=  1 Int= -0.155282997805D-02
+ I=  7 J=  1 K=  3 L=  1 Int=  0.123704892939D-02
+ I=  8 J=  1 K=  2 L=  1 Int= -0.700141189080D-01
+ I=  7 J=  1 K=  2 L=  1 Int=  0.445606592696D-01
+ I=  8 J=  6 K=  5 L=  5 Int= -0.816387193932D-02
+ I=  8 J=  6 K=  4 L=  4 Int= -0.816387193932D-02
+ I=  8 J=  6 K=  3 L=  3 Int= -0.514146386773D-02
+ I=  8 J=  6 K=  2 L=  2 Int= -0.709802678489D-02
+ I=  7 J=  6 K=  5 L=  5 Int=  0.740090805536D-01
+ I=  7 J=  6 K=  4 L=  4 Int=  0.740090805536D-01
+ I=  7 J=  6 K=  3 L=  3 Int=  0.917651317968D-01
+ I=  7 J=  6 K=  2 L=  2 Int=  0.799653317093D-01
+ I= 10 J= 10 K=  3 L=  1 Int=  0.816387193932D-02
+ I=  9 J=  9 K=  3 L=  1 Int=  0.816387193932D-02
+ I=  8 J=  8 K=  3 L=  1 Int=  0.514146386773D-02
+ I=  7 J=  7 K=  3 L=  1 Int=  0.709802678489D-02
+ I= 10 J= 10 K=  2 L=  1 Int=  0.740090805536D-01
+ I=  9 J=  9 K=  2 L=  1 Int=  0.740090805536D-01
+ I=  8 J=  8 K=  2 L=  1 Int=  0.917651317968D-01
+ I=  7 J=  7 K=  2 L=  1 Int=  0.799653317093D-01
+ I=  6 J=  1 K=  6 L=  1 Int=  0.395552747131D-02
+ I=  6 J=  1 K=  1 L=  1 Int=  0.561445532269D-01
+ I=  1 J=  1 K=  1 L=  1 Int=  0.168039515313D+01
+ I=  6 J=  6 K=  1 L=  1 Int=  0.480705976369D+00
+ I=  8 J=  1 K=  1 L=  1 Int= -0.384429098583D+00
+ I=  7 J=  1 K=  1 L=  1 Int=  0.241719456354D+00
+ I=  6 J=  1 K=  3 L=  1 Int=  0.270518943100D-02
+ I=  6 J=  1 K=  2 L=  1 Int=  0.112568888610D-01
+ I=  2 J=  1 K=  1 L=  1 Int=  0.265420264852D+00
+ I=  7 J=  6 K=  6 L=  6 Int=  0.265420264852D+00
+ I=  8 J=  6 K=  1 L=  1 Int= -0.318726141176D-01
+ I=  7 J=  6 K=  1 L=  1 Int=  0.114699404205D+00
+ I= 10 J=  5 K=  5 L=  5 Int=  0.226574581306D+00
+ I=  9 J=  4 K=  5 L=  5 Int=  0.203605066245D+00
+ I=  8 J=  3 K=  5 L=  5 Int=  0.837122248715D-01
+ I=  7 J=  3 K=  5 L=  5 Int=  0.103993415215D+00
+ I=  8 J=  2 K=  5 L=  5 Int= -0.154161971567D+00
+ I=  7 J=  2 K=  5 L=  5 Int=  0.243832190170D+00
+ I=  9 J=  5 K=  5 L=  4 Int=  0.114847575304D-01
+ I= 10 J=  4 K=  5 L=  4 Int=  0.114847575304D-01
+ I= 10 J=  5 K=  4 L=  4 Int=  0.203605066245D+00
+ I=  9 J=  4 K=  4 L=  4 Int=  0.226574581306D+00
+ I=  8 J=  3 K=  4 L=  4 Int=  0.837122248715D-01
+ I=  7 J=  3 K=  4 L=  4 Int=  0.103993415215D+00
+ I=  8 J=  2 K=  4 L=  4 Int= -0.154161971567D+00
+ I=  7 J=  2 K=  4 L=  4 Int=  0.243832190170D+00
+ I=  8 J=  5 K=  5 L=  3 Int=  0.326252078516D-02
+ I=  7 J=  5 K=  5 L=  3 Int=  0.631604530483D-02
+ I= 10 J=  3 K=  5 L=  3 Int=  0.168181548395D-01
+ I=  8 J=  4 K=  4 L=  3 Int=  0.326252078516D-02
+ I=  7 J=  4 K=  4 L=  3 Int=  0.631604530483D-02
+ I=  9 J=  3 K=  4 L=  3 Int=  0.168181548395D-01
+ I= 10 J=  5 K=  3 L=  3 Int=  0.208938463554D+00
+ I=  9 J=  4 K=  3 L=  3 Int=  0.208938463554D+00
+ I=  8 J=  3 K=  3 L=  3 Int=  0.100180366019D+00
+ I=  7 J=  3 K=  3 L=  3 Int=  0.116537437480D+00
+ I=  8 J=  2 K=  3 L=  3 Int= -0.141802080725D+00
+ I=  7 J=  2 K=  3 L=  3 Int=  0.246889208257D+00
+ I=  8 J=  5 K=  5 L=  2 Int= -0.415920059343D-01
+ I=  7 J=  5 K=  5 L=  2 Int=  0.513824206214D-01
+ I= 10 J=  2 K=  5 L=  2 Int=  0.475682562148D-01
+ I=  8 J=  4 K=  4 L=  2 Int= -0.415920059343D-01
+ I=  7 J=  4 K=  4 L=  2 Int=  0.513824206214D-01
+ I=  9 J=  2 K=  4 L=  2 Int=  0.475682562148D-01
+ I=  8 J=  3 K=  3 L=  2 Int= -0.135926335379D-01
+ I=  7 J=  3 K=  3 L=  2 Int=  0.584235621780D-01
+ I=  8 J=  2 K=  3 L=  2 Int=  0.199024632011D-01
+ I=  7 J=  2 K=  3 L=  2 Int=  0.239525853753D-01
+ I= 10 J=  5 K=  2 L=  2 Int=  0.213105145338D+00
+ I=  9 J=  4 K=  2 L=  2 Int=  0.213105145338D+00
+ I=  8 J=  3 K=  2 L=  2 Int=  0.892601264495D-01
+ I=  7 J=  3 K=  2 L=  2 Int=  0.108210934315D+00
+ I=  8 J=  2 K=  2 L=  2 Int= -0.150017385537D+00
+ I=  7 J=  2 K=  2 L=  2 Int=  0.244904632068D+00
+ I= 10 J= 10 K= 10 L= 10 Int=  0.312945454080D+00
+ I= 10 J=  9 K= 10 L=  9 Int=  0.168691357726D-01
+ I= 10 J= 10 K=  9 L=  9 Int=  0.279207182534D+00
+ I=  9 J=  9 K=  9 L=  9 Int=  0.312945454080D+00
+ I= 10 J=  8 K= 10 L=  8 Int=  0.168691357726D-01
+ I=  9 J=  8 K=  9 L=  8 Int=  0.168691357726D-01
+ I= 10 J= 10 K=  8 L=  8 Int=  0.279207182534D+00
+ I=  9 J=  9 K=  8 L=  8 Int=  0.279207182534D+00
+ I=  8 J=  8 K=  8 L=  8 Int=  0.312945454080D+00
+ I= 10 J=  7 K= 10 L=  7 Int=  0.641843156002D-01
+ I=  9 J=  7 K=  9 L=  7 Int=  0.641843156002D-01
+ I=  8 J=  7 K=  8 L=  7 Int=  0.641843156002D-01
+ I= 10 J= 10 K=  7 L=  7 Int=  0.290496921268D+00
+ I=  9 J=  9 K=  7 L=  7 Int=  0.290496921268D+00
+ I=  8 J=  8 K=  7 L=  7 Int=  0.290496921268D+00
+ I=  7 J=  7 K=  7 L=  7 Int=  0.290562238512D+00
+ I=  8 J=  1 K=  6 L=  1 Int= -0.160308667821D-01
+ I=  7 J=  1 K=  6 L=  1 Int=  0.103386466868D-01
+ I=  6 J=  3 K=  1 L=  1 Int=  0.156044168520D+00
+ I=  6 J=  2 K=  1 L=  1 Int=  0.104142384986D+00
+ I= 10 J= 10 K=  1 L=  1 Int=  0.309196037007D+00
+ I=  9 J=  9 K=  1 L=  1 Int=  0.309196037007D+00
+ I=  8 J=  8 K=  1 L=  1 Int=  0.406137599487D+00
+ I=  8 J=  7 K=  1 L=  1 Int= -0.133118438478D+00
+ I=  7 J=  7 K=  1 L=  1 Int=  0.341810234181D+00
+ I= 10 J=  6 K= 10 L=  1 Int=  0.134236955375D-02
+ I=  6 J=  5 K=  5 L=  1 Int=  0.134236955375D-02
+ I=  9 J=  6 K=  9 L=  1 Int=  0.134236955375D-02
+ I=  6 J=  4 K=  4 L=  1 Int=  0.134236955375D-02
+ I=  8 J=  6 K=  8 L=  1 Int=  0.970274014757D-02
+ I=  6 J=  3 K=  3 L=  1 Int=  0.970274014757D-02
+ I=  7 J=  6 K=  7 L=  1 Int=  0.244215266990D-01
+ I=  6 J=  2 K=  2 L=  1 Int=  0.244215266990D-01
+ I=  6 J=  1 K=  5 L=  5 Int=  0.222429358295D-01
+ I=  6 J=  1 K=  4 L=  4 Int=  0.222429358295D-01
+ I=  6 J=  1 K=  3 L=  3 Int=  0.248911205296D-01
+ I=  6 J=  1 K=  2 L=  2 Int=  0.231114720344D-01
+ I=  5 J=  5 K=  1 L=  1 Int=  0.396639584748D+00
+ I=  4 J=  4 K=  1 L=  1 Int=  0.396639584748D+00
+ I=  3 J=  3 K=  1 L=  1 Int=  0.396639584748D+00
+ I=  2 J=  2 K=  1 L=  1 Int=  0.397726784488D+00
+ I= 10 J=  1 K= 10 L=  1 Int=  0.151927718880D-02
+ I=  5 J=  1 K=  5 L=  1 Int=  0.898131701407D-02
+ I=  9 J=  1 K=  9 L=  1 Int=  0.151927718880D-02
+ I=  4 J=  1 K=  4 L=  1 Int=  0.898131701407D-02
+ I=  8 J=  1 K=  8 L=  1 Int=  0.991009545385D-01
+ I=  3 J=  1 K=  3 L=  1 Int=  0.898131701407D-02
+ I=  8 J=  1 K=  7 L=  1 Int= -0.629312169892D-01
+ I=  7 J=  1 K=  7 L=  1 Int=  0.400317553517D-01
+ I=  2 J=  1 K=  2 L=  1 Int=  0.499414218851D-01
+ I=  6 J=  6 K=  5 L=  5 Int=  0.309196037007D+00
+ I=  6 J=  6 K=  4 L=  4 Int=  0.309196037007D+00
+ I=  6 J=  6 K=  3 L=  3 Int=  0.406137599487D+00
+ I=  6 J=  6 K=  3 L=  2 Int=  0.133118438478D+00
+ I=  6 J=  6 K=  2 L=  2 Int=  0.341810234181D+00
+ I= 10 J= 10 K=  6 L=  1 Int=  0.222429358295D-01
+ I=  9 J=  9 K=  6 L=  1 Int=  0.222429358295D-01
+ I=  8 J=  8 K=  6 L=  1 Int=  0.248911205296D-01
+ I=  7 J=  7 K=  6 L=  1 Int=  0.231114720344D-01
+ I= 10 J=  5 K=  1 L=  1 Int=  0.270757688160D+00
+ I=  9 J=  4 K=  1 L=  1 Int=  0.270757688160D+00
+ I=  8 J=  3 K=  1 L=  1 Int=  0.864441848526D-01
+ I=  7 J=  3 K=  1 L=  1 Int=  0.131026499029D+00
+ I=  8 J=  2 K=  1 L=  1 Int= -0.256720182152D+00
+ I=  7 J=  2 K=  1 L=  1 Int=  0.331637489237D+00
+ I= 10 J= 10 K=  6 L=  6 Int=  0.396639584748D+00
+ I=  9 J=  9 K=  6 L=  6 Int=  0.396639584748D+00
+ I=  8 J=  8 K=  6 L=  6 Int=  0.396639584748D+00
+ I=  7 J=  7 K=  6 L=  6 Int=  0.397726784488D+00
+ I= 10 J=  6 K= 10 L=  6 Int=  0.898131701407D-02
+ I=  6 J=  5 K=  6 L=  5 Int=  0.151927718880D-02
+ I=  9 J=  6 K=  9 L=  6 Int=  0.898131701407D-02
+ I=  6 J=  4 K=  6 L=  4 Int=  0.151927718880D-02
+ I=  8 J=  6 K=  8 L=  6 Int=  0.898131701407D-02
+ I=  6 J=  3 K=  6 L=  3 Int=  0.991009545385D-01
+ I=  6 J=  3 K=  6 L=  2 Int=  0.629312169892D-01
+ I=  7 J=  6 K=  7 L=  6 Int=  0.499414218851D-01
+ I=  6 J=  2 K=  6 L=  2 Int=  0.400317553517D-01
+ I=  8 J=  5 K=  5 L=  1 Int= -0.116714922071D-01
+ I=  7 J=  5 K=  5 L=  1 Int=  0.109183700405D-01
+ I=  8 J=  4 K=  4 L=  1 Int= -0.116714922071D-01
+ I=  7 J=  4 K=  4 L=  1 Int=  0.109183700405D-01
+ I=  8 J=  3 K=  3 L=  1 Int= -0.831284216162D-02
+ I=  7 J=  3 K=  3 L=  1 Int=  0.116360457646D-01
+ I=  8 J=  2 K=  2 L=  1 Int= -0.576762008525D-01
+ I=  7 J=  2 K=  2 L=  1 Int=  0.772821803618D-01
+ I= 10 J=  8 K= 10 L=  1 Int= -0.248857571701D-02
+ I= 10 J=  7 K= 10 L=  1 Int=  0.444772566599D-02
+ I=  5 J=  2 K=  5 L=  1 Int=  0.137882634814D-01
+ I=  9 J=  8 K=  9 L=  1 Int= -0.248857571701D-02
+ I=  9 J=  7 K=  9 L=  1 Int=  0.444772566599D-02
+ I=  4 J=  2 K=  4 L=  1 Int=  0.137882634814D-01
+ I= 10 J= 10 K=  8 L=  1 Int= -0.989848108609D-01
+ I=  9 J=  9 K=  8 L=  1 Int= -0.989848108609D-01
+ I=  8 J=  8 K=  8 L=  1 Int= -0.124020194369D+00
+ I=  8 J=  7 K=  8 L=  1 Int=  0.386832661915D-01
+ I=  3 J=  2 K=  3 L=  1 Int=  0.137882634814D-01
+ I=  8 J=  1 K=  7 L=  7 Int= -0.107375243250D+00
+ I= 10 J= 10 K=  7 L=  1 Int=  0.654387544520D-01
+ I=  5 J=  5 K=  2 L=  1 Int=  0.928803534959D-01
+ I=  9 J=  9 K=  7 L=  1 Int=  0.654387544520D-01
+ I=  4 J=  4 K=  2 L=  1 Int=  0.928803534959D-01
+ I=  8 J=  8 K=  7 L=  1 Int=  0.808375457378D-01
+ I=  3 J=  3 K=  2 L=  1 Int=  0.928803534959D-01
+ I=  8 J=  7 K=  7 L=  1 Int= -0.246415744495D-01
+ I=  7 J=  7 K=  7 L=  1 Int=  0.705999701963D-01
+ I=  2 J=  2 K=  2 L=  1 Int=  0.928600971000D-01
+ I= 10 J=  3 K= 10 L=  1 Int=  0.258675418764D-02
+ I= 10 J=  2 K= 10 L=  1 Int=  0.439034109537D-02
+ I=  9 J=  3 K=  9 L=  1 Int=  0.258675418764D-02
+ I=  9 J=  2 K=  9 L=  1 Int=  0.439034109537D-02
+ I=  8 J=  3 K=  8 L=  1 Int= -0.265643200355D-01
+ I=  8 J=  2 K=  8 L=  1 Int=  0.775853244565D-01
+ I=  7 J=  3 K=  7 L=  1 Int=  0.288889056950D-01
+ I=  7 J=  2 K=  7 L=  1 Int=  0.677784980016D-01
+ I= 10 J=  6 K= 10 L=  3 Int=  0.116714922071D-01
+ I= 10 J=  6 K= 10 L=  2 Int=  0.109183700405D-01
+ I=  9 J=  6 K=  9 L=  3 Int=  0.116714922071D-01
+ I=  9 J=  6 K=  9 L=  2 Int=  0.109183700405D-01
+ I=  8 J=  6 K=  8 L=  3 Int=  0.831284216162D-02
+ I=  8 J=  6 K=  8 L=  2 Int=  0.116360457646D-01
+ I=  7 J=  6 K=  7 L=  3 Int=  0.576762008525D-01
+ I=  7 J=  6 K=  7 L=  2 Int=  0.772821803618D-01
+ I=  6 J=  5 K=  5 L=  3 Int=  0.248857571701D-02
+ I= 10 J=  7 K= 10 L=  6 Int=  0.137882634814D-01
+ I=  6 J=  5 K=  5 L=  2 Int=  0.444772566599D-02
+ I=  6 J=  4 K=  4 L=  3 Int=  0.248857571701D-02
+ I=  9 J=  7 K=  9 L=  6 Int=  0.137882634814D-01
+ I=  6 J=  4 K=  4 L=  2 Int=  0.444772566599D-02
+ I=  6 J=  3 K=  5 L=  5 Int=  0.989848108609D-01
+ I=  6 J=  3 K=  4 L=  4 Int=  0.989848108609D-01
+ I=  6 J=  3 K=  3 L=  3 Int=  0.124020194369D+00
+ I=  8 J=  7 K=  8 L=  6 Int=  0.137882634814D-01
+ I=  6 J=  3 K=  3 L=  2 Int=  0.386832661915D-01
+ I=  6 J=  3 K=  2 L=  2 Int=  0.107375243250D+00
+ I= 10 J= 10 K=  7 L=  6 Int=  0.928803534959D-01
+ I=  6 J=  2 K=  5 L=  5 Int=  0.654387544520D-01
+ I=  9 J=  9 K=  7 L=  6 Int=  0.928803534959D-01
+ I=  6 J=  2 K=  4 L=  4 Int=  0.654387544520D-01
+ I=  8 J=  8 K=  7 L=  6 Int=  0.928803534959D-01
+ I=  6 J=  2 K=  3 L=  3 Int=  0.808375457378D-01
+ I=  6 J=  2 K=  3 L=  2 Int=  0.246415744495D-01
+ I=  7 J=  7 K=  7 L=  6 Int=  0.928600971000D-01
+ I=  6 J=  2 K=  2 L=  2 Int=  0.705999701963D-01
+ I= 10 J= 10 K=  6 L=  3 Int=  0.123754749322D+00
+ I=  9 J=  9 K=  6 L=  3 Int=  0.123754749322D+00
+ I=  8 J=  8 K=  6 L=  3 Int=  0.123750408598D+00
+ I=  7 J=  7 K=  6 L=  3 Int=  0.123766856725D+00
+ I= 10 J= 10 K=  6 L=  2 Int=  0.806728344803D-01
+ I=  9 J=  9 K=  6 L=  2 Int=  0.806728344803D-01
+ I=  8 J=  8 K=  6 L=  2 Int=  0.806272831936D-01
+ I=  7 J=  7 K=  6 L=  2 Int=  0.806600740309D-01
+ I=  8 J=  1 K=  5 L=  5 Int= -0.123754749322D+00
+ I=  8 J=  1 K=  4 L=  4 Int= -0.123754749322D+00
+ I=  8 J=  1 K=  3 L=  3 Int= -0.123750408598D+00
+ I=  8 J=  1 K=  2 L=  2 Int= -0.123766856725D+00
+ I=  7 J=  1 K=  5 L=  5 Int=  0.806728344803D-01
+ I=  7 J=  1 K=  4 L=  4 Int=  0.806728344803D-01
+ I=  7 J=  1 K=  3 L=  3 Int=  0.806272831936D-01
+ I=  7 J=  1 K=  2 L=  2 Int=  0.806600740309D-01
+ I=  8 J=  5 K=  6 L=  5 Int= -0.258675418764D-02
+ I=  7 J=  5 K=  6 L=  5 Int=  0.439034109537D-02
+ I=  8 J=  4 K=  6 L=  4 Int= -0.258675418764D-02
+ I=  7 J=  4 K=  6 L=  4 Int=  0.439034109537D-02
+ I=  8 J=  3 K=  6 L=  3 Int=  0.265643200355D-01
+ I=  7 J=  3 K=  6 L=  3 Int=  0.775853244565D-01
+ I=  8 J=  2 K=  6 L=  2 Int= -0.288889056950D-01
+ I=  7 J=  2 K=  6 L=  2 Int=  0.677784980016D-01
+ I= 10 J=  5 K= 10 L=  5 Int=  0.177468891145D+00
+ I=  9 J=  5 K=  9 L=  5 Int=  0.953772891854D-02
+ I=  8 J=  5 K=  8 L=  5 Int=  0.312119447890D-01
+ I=  8 J=  5 K=  7 L=  5 Int= -0.311896026082D-01
+ I=  7 J=  5 K=  7 L=  5 Int=  0.438392584847D-01
+ I= 10 J=  4 K= 10 L=  4 Int=  0.953772891854D-02
+ I=  9 J=  4 K=  9 L=  4 Int=  0.177468891145D+00
+ I=  8 J=  4 K=  8 L=  4 Int=  0.312119447890D-01
+ I=  8 J=  4 K=  7 L=  4 Int= -0.311896026082D-01
+ I=  7 J=  4 K=  7 L=  4 Int=  0.438392584847D-01
+ I= 10 J=  3 K= 10 L=  3 Int=  0.312119447890D-01
+ I=  9 J=  3 K=  9 L=  3 Int=  0.312119447890D-01
+ I=  8 J=  3 K=  8 L=  3 Int=  0.565707683301D-01
+ I=  8 J=  3 K=  7 L=  3 Int=  0.314560909717D-01
+ I=  7 J=  3 K=  7 L=  3 Int=  0.990305551259D-01
+ I= 10 J=  3 K= 10 L=  2 Int=  0.311896026082D-01
+ I= 10 J=  2 K= 10 L=  2 Int=  0.438392584847D-01
+ I=  9 J=  3 K=  9 L=  2 Int=  0.311896026082D-01
+ I=  9 J=  2 K=  9 L=  2 Int=  0.438392584847D-01
+ I=  8 J=  3 K=  8 L=  2 Int= -0.314560909717D-01
+ I=  8 J=  2 K=  8 L=  2 Int=  0.990305551259D-01
+ I=  7 J=  3 K=  7 L=  2 Int=  0.115225874449D+00
+ I=  8 J=  2 K=  7 L=  2 Int= -0.115225874449D+00
+ I=  7 J=  2 K=  7 L=  2 Int=  0.216623137554D+00
+ I=  5 J=  5 K=  5 L=  5 Int=  0.312945454080D+00
+ I=  5 J=  4 K=  5 L=  4 Int=  0.168691357726D-01
+ I=  5 J=  5 K=  4 L=  4 Int=  0.279207182534D+00
+ I=  4 J=  4 K=  4 L=  4 Int=  0.312945454080D+00
+ I=  5 J=  3 K=  5 L=  3 Int=  0.168691357726D-01
+ I=  4 J=  3 K=  4 L=  3 Int=  0.168691357726D-01
+ I=  5 J=  5 K=  3 L=  3 Int=  0.279207182534D+00
+ I=  4 J=  4 K=  3 L=  3 Int=  0.279207182534D+00
+ I=  3 J=  3 K=  3 L=  3 Int=  0.312945454080D+00
+ I=  5 J=  2 K=  5 L=  2 Int=  0.641843156002D-01
+ I=  4 J=  2 K=  4 L=  2 Int=  0.641843156002D-01
+ I=  3 J=  2 K=  3 L=  2 Int=  0.641843156002D-01
+ I=  5 J=  5 K=  2 L=  2 Int=  0.290496921268D+00
+ I=  4 J=  4 K=  2 L=  2 Int=  0.290496921268D+00
+ I=  3 J=  3 K=  2 L=  2 Int=  0.290496921268D+00
+ I=  2 J=  2 K=  2 L=  2 Int=  0.290562238512D+00
+ I= 10 J= 10 K= 10 L=  5 Int=  0.226574581306D+00
+ I= 10 J=  5 K=  9 L=  9 Int=  0.203605066245D+00
+ I= 10 J=  5 K=  8 L=  8 Int=  0.208938463554D+00
+ I= 10 J=  5 K=  7 L=  7 Int=  0.213105145338D+00
+ I= 10 J=  9 K=  9 L=  5 Int=  0.114847575304D-01
+ I= 10 J=  8 K=  8 L=  5 Int=  0.168181548395D-01
+ I= 10 J=  7 K=  7 L=  5 Int=  0.475682562148D-01
+ I= 10 J=  9 K= 10 L=  4 Int=  0.114847575304D-01
+ I= 10 J= 10 K=  9 L=  4 Int=  0.203605066245D+00
+ I=  9 J=  9 K=  9 L=  4 Int=  0.226574581306D+00
+ I=  9 J=  4 K=  8 L=  8 Int=  0.208938463554D+00
+ I=  9 J=  4 K=  7 L=  7 Int=  0.213105145338D+00
+ I=  9 J=  8 K=  8 L=  4 Int=  0.168181548395D-01
+ I=  9 J=  7 K=  7 L=  4 Int=  0.475682562148D-01
+ I= 10 J=  8 K= 10 L=  3 Int=  0.326252078516D-02
+ I= 10 J=  7 K= 10 L=  3 Int=  0.415920059343D-01
+ I=  9 J=  8 K=  9 L=  3 Int=  0.326252078516D-02
+ I=  9 J=  7 K=  9 L=  3 Int=  0.415920059343D-01
+ I= 10 J= 10 K=  8 L=  3 Int=  0.837122248715D-01
+ I=  9 J=  9 K=  8 L=  3 Int=  0.837122248715D-01
+ I=  8 J=  8 K=  8 L=  3 Int=  0.100180366019D+00
+ I=  8 J=  7 K=  8 L=  3 Int=  0.135926335379D-01
+ I=  8 J=  3 K=  7 L=  7 Int=  0.892601264495D-01
+ I= 10 J= 10 K=  7 L=  3 Int=  0.154161971567D+00
+ I=  9 J=  9 K=  7 L=  3 Int=  0.154161971567D+00
+ I=  8 J=  8 K=  7 L=  3 Int=  0.141802080725D+00
+ I=  8 J=  7 K=  7 L=  3 Int=  0.199024632011D-01
+ I=  7 J=  7 K=  7 L=  3 Int=  0.150017385537D+00
+ I= 10 J=  8 K= 10 L=  2 Int= -0.631604530483D-02
+ I= 10 J=  7 K= 10 L=  2 Int=  0.513824206214D-01
+ I=  9 J=  8 K=  9 L=  2 Int= -0.631604530483D-02
+ I=  9 J=  7 K=  9 L=  2 Int=  0.513824206214D-01
+ I= 10 J= 10 K=  8 L=  2 Int= -0.103993415215D+00
+ I=  9 J=  9 K=  8 L=  2 Int= -0.103993415215D+00
+ I=  8 J=  8 K=  8 L=  2 Int= -0.116537437480D+00
+ I=  8 J=  7 K=  8 L=  2 Int=  0.584235621780D-01
+ I=  8 J=  2 K=  7 L=  7 Int= -0.108210934315D+00
+ I= 10 J= 10 K=  7 L=  2 Int=  0.243832190170D+00
+ I=  9 J=  9 K=  7 L=  2 Int=  0.243832190170D+00
+ I=  8 J=  8 K=  7 L=  2 Int=  0.246889208257D+00
+ I=  8 J=  7 K=  7 L=  2 Int= -0.239525853753D-01
+ I=  7 J=  7 K=  7 L=  2 Int=  0.244904632068D+00
+ I= 10 J= 10 K=  5 L=  5 Int=  0.268400111817D+00
+ I=  9 J=  9 K=  5 L=  5 Int=  0.245927290126D+00
+ I=  8 J=  8 K=  5 L=  5 Int=  0.266605998886D+00
+ I=  8 J=  7 K=  5 L=  5 Int= -0.548886260156D-01
+ I=  7 J=  7 K=  5 L=  5 Int=  0.260420690517D+00
+ I= 10 J= 10 K=  4 L=  4 Int=  0.245927290126D+00
+ I=  9 J=  9 K=  4 L=  4 Int=  0.268400111817D+00
+ I=  8 J=  8 K=  4 L=  4 Int=  0.266605998886D+00
+ I=  8 J=  7 K=  4 L=  4 Int= -0.548886260156D-01
+ I=  7 J=  7 K=  4 L=  4 Int=  0.260420690517D+00
+ I= 10 J= 10 K=  3 L=  3 Int=  0.266605998886D+00
+ I=  9 J=  9 K=  3 L=  3 Int=  0.266605998886D+00
+ I=  8 J=  8 K=  3 L=  3 Int=  0.284230533079D+00
+ I=  8 J=  7 K=  3 L=  3 Int= -0.336129780060D-01
+ I=  7 J=  7 K=  3 L=  3 Int=  0.272456836379D+00
+ I= 10 J= 10 K=  3 L=  2 Int=  0.548886260156D-01
+ I=  9 J=  9 K=  3 L=  2 Int=  0.548886260156D-01
+ I=  8 J=  8 K=  3 L=  2 Int=  0.336129780060D-01
+ I=  7 J=  7 K=  3 L=  2 Int=  0.477496585018D-01
+ I= 10 J= 10 K=  2 L=  2 Int=  0.260420690517D+00
+ I=  9 J=  9 K=  2 L=  2 Int=  0.260420690517D+00
+ I=  8 J=  8 K=  2 L=  2 Int=  0.272456836379D+00
+ I=  8 J=  7 K=  2 L=  2 Int= -0.477496585018D-01
+ I=  7 J=  7 K=  2 L=  2 Int=  0.264497948815D+00
+ Leave Link  316 at Thu Mar  7 09:35:02 2024, MaxMem=  1342177280 cpu:               0.0 elap:               0.0
+ (Enter /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l401.exe)
+ ExpMin= 4.81D-02 ExpMax= 1.61D+01 ExpMxC= 1.61D+01 IAcc=3 IRadAn=         5 AccDes= 0.00D+00
+ Harris functional with IExCor= 2005 and IRadAn=       5 diagonalized for initial guess.
+ HarFok:  IExCor=    2005 AccDes= 0.00D+00 IRadAn=         5 IDoV= 1 UseB2=F ITyADJ=14 ICtDFT=  3500011
+ FoFCou: FMM=F IPFlag=           0 FMFlag=      100000 FMFlg1=           0
+         NFxFlg=           0 DoJE=T BraDBF=F KetDBF=T FulRan=T
+         wScrn=  0.000000 ICntrl=       500 IOpCl=  0 I1Cent=   200000004 NGrid=           0
+         NMat0=    1 NMatS0=      1 NMatT0=    0 NMatD0=    1 NMtDS0=    0 NMtDT0=    0
+ Symmetry not used in FoFCou.
+ Harris En= -14.3894343186310    
+ JPrj=0 DoOrth=F DoCkMO=F.
+ Leave Link  401 at Thu Mar  7 09:35:02 2024, MaxMem=  1342177280 cpu:               0.9 elap:               0.5
+ (Enter /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l502.exe)
+ Two-electron integral symmetry not used.
+ Closed shell SCF:
+ Using DIIS extrapolation, IDIIS=  1040.
+ NGot=  1342177280 LenX=  1341913682 LenY=  1341912800
+ Requested convergence on RMS density matrix=1.00D-08 within 128 cycles.
+ Requested convergence on MAX density matrix=1.00D-06.
+ Requested convergence on             energy=1.00D-06.
+ No special actions if energy rises.
+
+ Cycle   1  Pass 1  IDiag  1:
+ E= -14.4096294926800    
+ DIIS: error= 2.14D-02 at cycle   1 NSaved=   1.
+ NSaved= 1 IEnMin= 1 EnMin= -14.4096294926800     IErMin= 1 ErrMin= 2.14D-02
+ ErrMax= 2.14D-02  0.00D+00 EMaxC= 1.00D-01 BMatC= 3.84D-03 BMatP= 3.84D-03
+ Rises=F IDIUse=3 WtCom= 7.86D-01 WtEn= 2.14D-01
+ Coeff-Com:  0.100D+01
+ Coeff-En:   0.100D+01
+ Coeff:      0.100D+01
+ Gap=     0.229 Goal=   None    Shift=    0.000
+ GapD=    0.229 DampG=1.000 DampE=0.500 DampFc=0.5000 IDamp=-1.
+ Damping current iteration by 5.00D-01
+ RMSDP=2.86D-02 MaxDP=8.83D-02              OVMax= 1.91D-02
+
+ Cycle   2  Pass 1  IDiag  1:
+ E= -14.4121536424543     Delta-E=       -0.002524149774 Rises=F Damp=T AM=F Ri=F Fa=F
+ DIIS: error= 1.17D-02 at cycle   2 NSaved=   2.
+ NSaved= 2 IEnMin= 2 EnMin= -14.4121536424543     IErMin= 2 ErrMin= 1.17D-02
+ ErrMax= 1.17D-02  0.00D+00 EMaxC= 1.00D-01 BMatC= 1.14D-03 BMatP= 3.84D-03
+ Rises=F IDIUse=3 WtCom= 8.83D-01 WtEn= 1.17D-01
+ Coeff-Com: -0.120D+01 0.220D+01
+ Coeff-En:   0.000D+00 0.100D+01
+ Coeff:     -0.106D+01 0.206D+01
+ Gap=     0.228 Goal=   None    Shift=    0.000
+ RMSDP=1.65D-02 MaxDP=5.15D-02 DE=-2.52D-03 OVMax= 2.62D-03
+
+ Cycle   3  Pass 1  IDiag  1:
+ E= -14.4149610649993     Delta-E=       -0.002807422545 Rises=F Damp=F AM=F Ri=F Fa=F
+ DIIS: error= 2.95D-04 at cycle   3 NSaved=   3.
+ NSaved= 3 IEnMin= 3 EnMin= -14.4149610649993     IErMin= 3 ErrMin= 2.95D-04
+ ErrMax= 2.95D-04  0.00D+00 EMaxC= 1.00D-01 BMatC= 2.69D-07 BMatP= 1.14D-03
+ Rises=F IDIUse=3 WtCom= 9.99D-01 WtEn= 5.07D-04
+ Coeff-Com:  0.346D+00-0.650D+00 0.130D+01
+ Coeff-En:   0.000D+00 0.000D+00 0.100D+01
+ Coeff:      0.346D+00-0.650D+00 0.130D+01
+ Gap=     0.228 Goal=   None    Shift=    0.000
+ RMSDP=2.78D-04 MaxDP=7.65D-04 DE=-2.81D-03 OVMax= 1.16D-03
+
+ Cycle   4  Pass 1  IDiag  1:
+ E= -14.4149625903178     Delta-E=       -0.000001525319 Rises=F Damp=F AM=F Ri=F Fa=F
+ DIIS: error= 4.23D-05 at cycle   4 NSaved=   4.
+ NSaved= 4 IEnMin= 4 EnMin= -14.4149625903178     IErMin= 4 ErrMin= 4.23D-05
+ ErrMax= 4.23D-05  0.00D+00 EMaxC= 1.00D-01 BMatC= 5.51D-09 BMatP= 2.69D-07
+ Rises=F IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
+ Coeff-Com: -0.119D+00 0.224D+00-0.576D+00 0.147D+01
+ Coeff:     -0.119D+00 0.224D+00-0.576D+00 0.147D+01
+ Gap=     0.228 Goal=   None    Shift=    0.000
+ RMSDP=6.52D-05 MaxDP=1.91D-04 DE=-1.53D-06 OVMax= 3.05D-04
+
+ Cycle   5  Pass 1  IDiag  1:
+ E= -14.4149626493964     Delta-E=       -0.000000059079 Rises=F Damp=F AM=F Ri=F Fa=F
+ DIIS: error= 9.68D-07 at cycle   5 NSaved=   5.
+ NSaved= 5 IEnMin= 5 EnMin= -14.4149626493964     IErMin= 5 ErrMin= 9.68D-07
+ ErrMax= 9.68D-07  0.00D+00 EMaxC= 1.00D-01 BMatC= 2.54D-12 BMatP= 5.51D-09
+ Rises=F IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
+ Coeff-Com:  0.183D-01-0.347D-01 0.901D-01-0.226D+00 0.115D+01
+ Coeff:      0.183D-01-0.347D-01 0.901D-01-0.226D+00 0.115D+01
+ Gap=     0.228 Goal=   None    Shift=    0.000
+ RMSDP=6.33D-07 MaxDP=1.75D-06 DE=-5.91D-08 OVMax= 1.77D-06
+
+ Cycle   6  Pass 1  IDiag  1:
+ E= -14.4149626494018     Delta-E=       -0.000000000005 Rises=F Damp=F AM=F Ri=F Fa=F
+ DIIS: error= 8.63D-08 at cycle   6 NSaved=   6.
+ NSaved= 6 IEnMin= 6 EnMin= -14.4149626494018     IErMin= 6 ErrMin= 8.63D-08
+ ErrMax= 8.63D-08  0.00D+00 EMaxC= 1.00D-01 BMatC= 3.87D-14 BMatP= 2.54D-12
+ Rises=F IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
+ Coeff-Com: -0.127D-03 0.245D-03-0.597D-03 0.912D-03 0.685D-02 0.993D+00
+ Coeff:     -0.127D-03 0.245D-03-0.597D-03 0.912D-03 0.685D-02 0.993D+00
+ Gap=     0.228 Goal=   None    Shift=    0.000
+ RMSDP=8.11D-08 MaxDP=2.42D-07 DE=-5.40D-12 OVMax= 1.52D-07
+
+ Cycle   7  Pass 1  IDiag  1:
+ E= -14.4149626494018     Delta-E=        0.000000000000 Rises=F Damp=F AM=F Ri=F Fa=F
+ DIIS: error= 4.95D-10 at cycle   7 NSaved=   7.
+ NSaved= 7 IEnMin= 7 EnMin= -14.4149626494018     IErMin= 7 ErrMin= 4.95D-10
+ ErrMax= 4.95D-10  0.00D+00 EMaxC= 1.00D-01 BMatC= 1.27D-18 BMatP= 3.87D-14
+ Rises=F IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
+ Coeff-Com: -0.769D-07 0.150D-06-0.145D-05 0.554D-05-0.266D-04 0.394D-02
+ Coeff-Com:  0.996D+00
+ Coeff:     -0.769D-07 0.150D-06-0.145D-05 0.554D-05-0.266D-04 0.394D-02
+ Coeff:      0.996D+00
+ Gap=     0.228 Goal=   None    Shift=    0.000
+ RMSDP=3.54D-10 MaxDP=1.02D-09 DE=-4.62D-14 OVMax= 4.81D-10
+
+ SCF Done:  E(RHF) =  -14.4149626494     A.U. after    7 cycles
+            NFock=  7  Conv=0.35D-09     -V/T= 1.9722
+ KE=          14.827817 PE=         -41.713512 EE=           8.141100
+ Leave Link  502 at Thu Mar  7 09:35:03 2024, MaxMem=  1342177280 cpu:               0.0 elap:               0.3
+ (Enter /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l601.exe)
+ Copying SCF densities to generalized density rwf, IOpCl= 0 IROHF=0.
+
+ **********************************************************************
+
+            Population analysis using the SCF Density.
+
+ **********************************************************************
+
+ Alpha  occ. eigenvalues --       -2.65663      -2.45220      -0.19292
+ Alpha virt. eigenvalues --        0.03497       0.03497       0.07255       0.30817       0.32756
+ Alpha virt. eigenvalues --        0.32756       1.46039
+          Condensed to atoms (all electrons):
+               1          2
+     1  Li   2.541454   0.458546
+     2  Li   0.458546   2.541454
+ Mulliken charges:
+               1
+     1  Li   0.000000
+     2  Li   0.000000
+ Sum of Mulliken charges =   0.00000
+ Mulliken charges with hydrogens summed into heavy atoms:
+               1
+     1  Li   0.000000
+     2  Li   0.000000
+ Electronic spatial extent (au):  <R**2>=             41.7551
+ Charge=              0.0000 electrons
+ Dipole moment (field-independent basis, Debye):
+    X=              0.0000    Y=              0.0000    Z=              0.0000  Tot=              0.0000
+ Quadrupole moment (field-independent basis, Debye-Ang):
+   XX=            -14.3889   YY=            -12.1688   ZZ=            -12.1688
+   XY=              0.0000   XZ=              0.0000   YZ=              0.0000
+ Traceless Quadrupole moment (field-independent basis, Debye-Ang):
+   XX=             -1.4801   YY=              0.7400   ZZ=              0.7400
+   XY=              0.0000   XZ=              0.0000   YZ=              0.0000
+ Octapole moment (field-independent basis, Debye-Ang**2):
+  XXX=            -23.7416  YYY=              0.0000  ZZZ=              0.0000  XYY=             -6.6928
+  XXY=              0.0000  XXZ=              0.0000  XZZ=             -6.6928  YZZ=              0.0000
+  YYZ=              0.0000  XYZ=              0.0000
+ Hexadecapole moment (field-independent basis, Debye-Ang**3):
+ XXXX=           -102.3542 YYYY=            -42.1262 ZZZZ=            -42.1262 XXXY=              0.0000
+ XXXZ=              0.0000 YYYX=              0.0000 YYYZ=              0.0000 ZZZX=              0.0000
+ ZZZY=              0.0000 XXYY=            -23.0430 XXZZ=            -23.0430 YYZZ=            -14.0421
+ XXYZ=              0.0000 YYXZ=              0.0000 ZZXY=              0.0000
+ N-N=           4.329632 E-N=         -41.713512  KE=          14.827817
+ No NMR shielding tensors so no spin-rotation constants.
+ Leave Link  601 at Thu Mar  7 09:35:03 2024, MaxMem=  1342177280 cpu:               0.4 elap:               0.2
+ (Enter /panfs/pfs.local/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j26/gdv/l9999.exe)
+
+ Test job not archived.
+ 1\1\GINC-R05R20N01\SP\RHF\STO-3G\Li2\T566P276\07-Mar-2024\0\\#p HF/STO
+ -3G sp nosymm output=baf extralinks=l316 noraff scf=conventional\\test
+ 1\\0,1\Li,0,0.,0.,0.\Li,0,1.1,0.,0.\\Version=ES64L-GDVRevJ.26+\HF=-14.
+ 4149626\RMSD=3.539e-10\Dipole=0.,0.,0.\Quadrupole=-1.1003814,0.5501907
+ ,0.5501907,0.,0.,0.\PG=D*H [C*(Li1.Li1)]\\@
+
+
+ EDUCATION IS NOT TRAINING BUT RATHER THE PROCESS THAT EQUIPS YOU TO
+ ENTERTAIN YOURSELF, A FRIEND, OR AN IDEA.  -- WALLACE STERLING
+ RW2BAF: Writing raw file "Li2.baf"
+ Gaussian matrix elements                                         Version   3 NLab=11 I4Labs=T I2Labs=F
+ Write SHELL TO ATOM MAP                   from file      0 offset           0 length                   4 to binary array file.
+ Write SHELL TYPES                         from file      0 offset           0 length                   4 to binary array file.
+ Write NUMBER OF PRIMITIVES PER SHELL      from file      0 offset           0 length                   4 to binary array file.
+ Write PRIMITIVE EXPONENTS                 from file      0 offset           0 length                  12 to binary array file.
+ Write CONTRACTION COEFFICIENTS            from file      0 offset           0 length                  12 to binary array file.
+ Write P(S=P) CONTRACTION COEFFICIENTS     from file      0 offset           0 length                  12 to binary array file.
+ Write COORDINATES OF EACH SHELL           from file      0 offset           0 length                  12 to binary array file.
+ Write BONDS PER ATOM                      from file      0 offset           0 length                   2 to binary array file.
+ Write BONDED ATOMS                        from file      0 offset           0 length                   2 to binary array file.
+ Write BOND TYPES                          from file      0 offset           0 length                   2 to binary array file.
+ Write ONIOM CHARGE/MULT                   from file      0 offset           0 length                  32 to binary array file.
+ Write ONIOM ATOM LAYERS                   from file      0 offset           0 length                   2 to binary array file.
+ Write ONIOM ATOM MODIFIERS                from file      0 offset           0 length                   2 to binary array file.
+ Write ONIOM ATOM TYPES                    from file      0 offset           0 length                   2 to binary array file.
+ Write ONIOM LINK ATOMS                    from file      0 offset           0 length                   2 to binary array file.
+ Write ONIOM LINK CHARGES                  from file      0 offset           0 length                   2 to binary array file.
+ Write ONIOM LINK DISTANCES                from file      0 offset           0 length                   8 to binary array file.
+ Write SYMINF INTEGERS                     from file      0 offset           0 length                  26 to binary array file.
+ Write ROTTR TO INPUT ORIENTATION          from file      0 offset           0 length                  12 to binary array file.
+ Write TITLE                               from file      0 offset           0 length                   2 to binary array file.
+ Write ROUTE                               from file      0 offset           0 length                  19 to binary array file.
+ Write INFO1-9                             from file      0 offset           0 length                   9 to binary array file.
+ Write METHOD                              from file      0 offset           0 length                   1 to binary array file.
+ Write BASIS NAME                          from file      0 offset           0 length                   2 to binary array file.
+ Write LINK0 COMMANDS                      from file      0 offset           0 length                   8 to binary array file.
+ Write POINT GROUP                         from file      0 offset           0 length                   4 to binary array file.
+ Write POINT GROUP DIMENSIONS              from file      0 offset           0 length                   8 to binary array file.
+ Write POINT GROUP IRREP NAMES             from file      0 offset           0 length                  16 to binary array file.
+ Write POINT GROUP CLASS NAMES             from file      0 offset           0 length                  16 to binary array file.
+ Write POINT GROUP GENERATORS              from file      0 offset           0 length                   3 to binary array file.
+ Write POINT GROUP CLASS OF OPERATORS      from file      0 offset           0 length                   8 to binary array file.
+ Write POINT GROUP ROTATIONS               from file      0 offset           0 length                  96 to binary array file.
+ Write POINT GROUP CELL TRANS              from file      0 offset           0 length                  24 to binary array file.
+ Write POINT GROUP CHAR TABLE              from file      0 offset           0 length                  64 to binary array file.
+ Write POINT GROUP ATOM PERMUTATIONS       from file      0 offset           0 length                  16 to binary array file.
+ Write ILSW                                from file      0 offset           0 length                 100 to binary array file.
+ Write RLSW                                from file      0 offset           0 length                 100 to binary array file.
+ Write GAUSSIAN SCALARS                    from file 100501 offset           0 to binary array file.
+ Write OPTIMIZATION FLAGS                  from file      0 offset           0 length                   2 to binary array file.
+ Write INTEGER ISO                         from file      0 offset           0 length                   2 to binary array file.
+ Write INTEGER SPIN                        from file      0 offset           0 length                   2 to binary array file.
+ Write REAL ZEFFECTIVE                     from file      0 offset           0 length                   2 to binary array file.
+ Write REAL QUADRUPOLEMOMENT               from file      0 offset           0 length                   2 to binary array file.
+ Write REAL GFACTOR                        from file      0 offset           0 length                   2 to binary array file.
+ Write REAL ZNUCLEAR                       from file      0 offset           0 length                   2 to binary array file.
+ Write MULLIKEN CHARGES                    from file      0 offset           0 length                   2 to binary array file.
+ Write NUCLEAR GRADIENT                    from file      0 offset           0 length                   6 to binary array file.
+ Write NON-ADIABATIC COUPLING              from file      0 offset           0 length                   6 to binary array file.
+ Write ELECTRIC DIPOLE MOMENT              from file      0 offset           0 length                   3 to binary array file.
+ Write QUADRUPOLE MOMENT                   from file      0 offset           0 length                   6 to binary array file.
+ Write QEQ COUPLING TENSORS                from file      0 offset           0 length                  12 to binary array file.
+ Write HARM CONSTRAINT C AND FC            from file      0 offset           0 length                  12 to binary array file.
+ Write FINITE EM FIELD                     from file 100521 offset           0 length                 105 to binary array file.
+ Write OVERLAP                             from file 100514 offset           0 length                  55 to binary array file.
+ Write CORE HAMILTONIAN ALPHA              from file 100515 offset           0 length                  55 to binary array file.
+ Write CORE HAMILTONIAN BETA               from file 100515 offset          55 length                  55 to binary array file.
+ Write KINETIC ENERGY                      from file 100516 offset           0 length                  55 to binary array file.
+ Write ORTHONORMAL BASIS                   from file 100685 offset           0 length                 100 to binary array file.
+ Write DIPOLE INTEGRALS                    from file 100518 offset           0 length                 165 to binary array file.
+ Write DIP VEL INTEGRALS                   from file 100572 offset           0 length                 165 to binary array file.
+ Write R X DEL INTEGRALS                   from file 100572 offset         165 length                 165 to binary array file.
+ Write R X DEL - DEL X R INTEGRALS         from file 100572 offset         330 length                 330 to binary array file.
+ Array MAGNETIC FIELD P1 (GIAO)             on  file 100696 does not exist.
+ Write ALPHA ORBITAL ENERGIES              from file      0 offset           0 length                  10 to binary array file.
+ Write ALPHA MO COEFFICIENTS               from file 100524 offset           0 length                 100 to binary array file.
+ Write ALPHA DENSITY MATRIX                from file      0 offset           0 length                  55 to binary array file.
+ Write SCF ORBITAL OCCUPATIONS             from file 100861 offset           0 length                  10 to binary array file.
+ Write ALPHA FOCK MATRIX                   from file 100536 offset           0 length                  55 to binary array file.
+ Write ENERGY-WEIGHTED DENSITY             from file 100571 offset           0 length                  55 to binary array file.
+ Write SCF ENERGY-WEIGHTED DENSITY         from file 100571 offset          55 length                  55 to binary array file.
+ Write ALPHA SCF DENSITY MATRIX            from file      0 offset           0 length                  55 to binary array file.
+ Write REGULAR 2E INTEGRALS                to binary array file, NR=1 ITotal=         512.
+ Job cpu time:       0 days  0 hours  0 minutes  2.3 seconds.
+ Elapsed time:       0 days  0 hours  0 minutes  2.4 seconds.
+ File lengths (MBytes):  RWF=      6 Int=      1 D2E=      0 Chk=      1 Scr=      1
+ Normal termination of Gaussian DV at Thu Mar  7 09:35:03 2024.

@@ -1,3 +1,15 @@
+#Set a condition to only calculate specific intermediates
+#Remove T=1
+#Remove unnecessary variables
+#tau and tau_tilde einsum, define in main routine
+#Add flag for Fae to conditionally cancel diagonal elements
+#Form all integrals individually
+#Way to nest einsum
+#Remove copies of the same integrals IABC,AIBC
+#einsum optimize=True
+#Eliminate redundant integrals, ijka=-ijak
+#Eliminate redundant I1 arrays
+
 Run the program using >>py main.py <MOLECULE NAME>
 main.py calls the needed routines
 ccsdAmps.py does CCSD

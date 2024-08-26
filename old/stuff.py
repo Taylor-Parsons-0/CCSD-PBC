@@ -52,35 +52,16 @@ def getFort(molecule, log):
     Fock[i]=OE[i//2]
   Fock=np.diag(Fock)
 #MO Coefficients
-#  Coeff=np.zeros((NB,NB))
-#  with open(f"{mol}_txts/mocoef.txt","r") as reader:
-#    text=[]
-#    for line in reader:
-#      text.append(line.split())
-#    for i in range(len(Coeff)):
-#      for j in range(len(Coeff)):
-#        Coeff[i][j]=float(text[i+2][j+1].replace("D","E"))
-#  Coeff=np.transpose(Coeff)
-  #print(Coeff)
-  Coeff=[[] for _ in range(NB)]
+  Coeff=np.zeros((NB,NB))
   with open(f"{mol}_txts/mocoef.txt","r") as reader:
     text=[]
     for line in reader:
       text.append(line.split())
-  del text[0]
-  bad=[]
-  for i in range(len(text)):
-    n=0
-    for j in range(len(text[i])):
-      if "D" not in text[i][j]:
-        n+=1
-    if n==len(text[i]):
-      bad.append(i)
-  for i in range(len(text)):
-    if i not in bad:
-      for j in range(len(text[i])-1):
-        Coeff[int(text[i][0])-1].append(float(text[i][j+1].replace("D","E")))
-  Coeff=np.transpose(np.array(Coeff))
+    for i in range(len(Coeff)):
+      for j in range(len(Coeff)):
+        Coeff[i][j]=float(text[i+2][j+1].replace("D","E"))
+  Coeff=np.transpose(Coeff)
+  #print(Coeff)
   
 
 #  os.system(f"grep -i 'occ. eigenvalue' {molecule}.log > OV.txt")
@@ -153,7 +134,7 @@ def getFort(molecule, log):
 # 
 #  Coeff=np.array([C_list[i:i+NB] for i in range(0, NB*NB, NB)])
 #  os.system("rm    OEs.txt     OV.txt      fort7H2.txt     scf.txt")
-  return O, V, NB, scfE, Fock, Coeff
+  return O, NB, scfE, Fock, Coeff
 
 
 
@@ -188,10 +169,8 @@ def get2e(AOInt, log):
 #########################################################
 ####### Change to MO Basis ##############################
 #########################################################
-def conMO(twoE, MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, Coeff, NB, AOInt, molecule, log):
-  O, V, NB, scfE, Fock, Coeff=getFort(molecule, log)
-
-#  #Initialize temporary arrs
+def conMO(twoE, MO, Coeff, NB, AOInt):
+  #Initialize temporary arrs
   temp = np.zeros((NB,NB,NB,NB))
   temp2 = np.zeros((NB,NB,NB,NB))
   temp3= np.zeros((NB,NB,NB,NB))
@@ -218,100 +197,12 @@ def conMO(twoE, MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, 
           exchange=twoE[p//2,s//2,q//2,r//2]*(p%2==s%2)*(q%2==r%2)
           MO[p,q,r,s]=round(coulomb-exchange,16)
   #print(np.sum(abs(MO)))
-  O=O*2
-  V=V*2
+  O=1
+  V=3
+  IJAB=np.zeros((O,O,V,V))
 #  for i in range(O):
 #    for j in range(O):
-#      for k in range(O):
-#        for l in range(O):
-#          IJKL[i,j,k,l]=MO[i,j,k,l]
-#        for a in range(V):
-#          IJKA[i,j,k,a]=MO[i,j,k,a+O]
 #      for a in range(V):
-#        for k in range(O):
-#          IJAK[i,j,a,k]=MO[i,j,a+O,k]
 #        for b in range(V):
-#          IJAB[i,j,a,b]=MO[i,j,a+O,b+O]
-#
-#  for i in range(O):
-#    for a in range(V):
-#      for b in range(V):
-#        for c in range(V):
-#          IABC[i,a,b,c]=MO[i,a+O,b+O,c+O]
-#        for j in range(O):
-#          IABJ[i,a,b,j]=MO[i,a+O,b+O,j]
-#      for j in range(O):
-#        for k in range(O):
-#          IAJK[i,a,j,k]=MO[i,a+O,j,k]
-#        for b in range(V):
-#          IAJB[i,a,j,b]=MO[i,a+O,j,b+O]
-#
-#  for a in range(V):
-#    for b in range(V):
-#      for c in range(V):
-#        for i in range(O):
-#          ABCI[a,b,c,i]=MO[a+O,b+O,c+O,i]
-#        for d in range(V):
-#          ABCD[a,b,c,d]=MO[a+O,b+O,c+O,d+O]
-#    for i in range(O):
-#      for b in range(V):
-#        for c in range(V):
-#          AIBC[a,i,b,c]=MO[a+O,i,b+O,c+O]
-  #print(np.sum(abs(IJAB)))
-  for i in range(O):
-    for j in range(O):
-      for k in range(O):
-        for l in range(O):
-          IJKL[i,j,k,l]=MO[i,j,k,l]
-  for a in range(V):
-    for b in range(V):
-      for c in range(V):
-        for d in range(V):
-          ABCD[a,b,c,d]=MO[a+O,b+O,c+O,d+O]
-  for i in range(O):
-    for a in range(V):
-      for b in range(V):
-        for c in range(V):
-          IABC[i,a,b,c]=MO[i,a+O,b+O,c+O]
-  for i in range(O):
-    for j in range(O):
-      for a in range(V):
-        for b in range(V):
-          IJAB[i,j,a,b]=MO[i,j,a+O,b+O]
-  for i in range(O):
-    for j in range(O):
-      for k in range(O):
-        for a in range(V):
-          IJKA[i,j,k,a]=MO[i,j,k,a+O]
-  for a in range(V):
-    for i in range(O):
-      for b in range(V):
-        for c in range(V):
-          AIBC[a,i,b,c]=MO[a+O,i,b+O,c+O]
-  for i in range(O):
-    for a in range(V):
-      for b in range(V):
-        for j in range(O):
-          IABJ[i,a,b,j]=MO[i,a+O,b+O,j]
-  for i in range(O):
-    for j in range(O):
-      for a in range(V):
-        for k in range(O):
-          IJAK[i,j,a,k]=MO[i,j,a+O,k]
-  for i in range(O):
-    for a in range(V):
-      for j in range(O):
-        for b in range(V):
-          IAJB[i,a,j,b]=MO[i,a+O,j,b+O]
-  for a in range(V):
-    for b in range(V):
-      for c in range(V):
-        for i in range(O):
-          ABCI[a,b,c,i]=MO[a+O,b+O,c+O,i]
-  for i in range(O):
-    for a in range(V):
-      for j in range(O):
-        for k in range(O):
-          IAJK[i,a,j,k]=MO[i,a+O,j,k]
-
-  return MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK
+#          print(MO[i,j,a+O,b+O])
+  return MO

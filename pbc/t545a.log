@@ -1,0 +1,312 @@
+ Entering Gaussian System, Link 0=gdv
+ Input=t545a.gjf
+ Output=t545a.log
+ Initial command:
+ /kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/l1.exe "/tmp/t566p276_22213786/Gau-252534.inp" -scrdir="/tmp/t566p276_22213786/" -exedir="/kuhpc/work/caricato/t566p276/gauopen_j29p/exe-dir:/kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/bsd:/kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/local:/kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/extras:/kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv"
+ Entering Link 1 = /kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/l1.exe PID=    252538.
+  
+ Copyright (c) 1988-2024, Gaussian, Inc.  All Rights Reserved.
+  
+ This is the private, development version of
+ the Gaussian(R) DV system of programs. It is based on
+ the Gaussian(R) 16 system (copyright 2016, Gaussian, Inc.),
+ the Gaussian(R) 09 system (copyright 2009, Gaussian, Inc.),
+ the Gaussian(R) 03 system (copyright 2003, Gaussian, Inc.),
+ the Gaussian(R) 98 system (copyright 1998, Gaussian, Inc.),
+ the Gaussian(R) 94 system (copyright 1995, Gaussian, Inc.),
+ the Gaussian 92(TM) system (copyright 1992, Gaussian, Inc.),
+ the Gaussian 90(TM) system (copyright 1990, Gaussian, Inc.),
+ the Gaussian 88(TM) system (copyright 1988, Gaussian, Inc.),
+ the Gaussian 86(TM) system (copyright 1986, Carnegie Mellon
+ University), and the Gaussian 82(TM) system (copyright 1983,
+ Carnegie Mellon University). Gaussian is a federally registered
+ trademark of Gaussian, Inc.
+  
+ This software contains proprietary and confidential information,
+ including trade secrets, belonging to Gaussian, Inc.
+  
+ This software is provided under written license and may be
+ used, copied, transmitted, or stored only in accord with that
+ written license.
+  
+ The following legend is applicable only to US Government
+ contracts under FAR:
+  
+                    RESTRICTED RIGHTS LEGEND
+  
+ Use, reproduction and disclosure by the US Government is
+ subject to restrictions as set forth in subparagraphs (a)
+ and (c) of the Commercial Computer Software - Restricted
+ Rights clause in FAR 52.227-19.
+  
+ Gaussian, Inc.
+ 340 Quinnipiac St., Bldg. 40, Wallingford CT 06492
+  
+  
+ ---------------------------------------------------------------
+ Warning -- This program may not be used in any manner that
+ competes with the business of Gaussian, Inc. or will provide
+ assistance to any competitor of Gaussian, Inc.  The licensee
+ of this program is prohibited from giving any competitor of
+ Gaussian, Inc. access to this program.  By using this program,
+ the user acknowledges that Gaussian, Inc. is engaged in the
+ business of creating and licensing software in the field of
+ computational chemistry and represents and warrants to the
+ licensee that it is not a competitor of Gaussian, Inc. and that
+ it will not use this program in any manner prohibited above.
+ ---------------------------------------------------------------
+  
+
+ Cite this work as:
+ Gaussian Development Version, Revision J.29+,
+ M. J. Frisch, G. W. Trucks, G. Scalmani, J. R. Cheeseman, X. Li, 
+ J. Bloino, B. G. Janesko, A. V. Marenich, J. Zheng, F. Lipparini, 
+ A. Jenkins, A. Liu, H. Liu, H. B. Schlegel, G. E. Scuseria, 
+ M. A. Robb, V. Barone, G. A. Petersson, H. Nakatsuji, B. Mennucci, 
+ C. Adamo, N. Rega, M. Caricato, H. P. Hratchian, J. V. Ortiz, 
+ F. Pawlowski, A. F. Izmaylov, H. Hu, C. Liao, J. L. Sonnenberg, 
+ D. Williams-Young, F. Ding, R. Gomperts, F. Egidi, J. Goings, 
+ B. Peng, A. Petrone, T. Henderson, D. Ranasinghe, V. G. Zakrzewski, 
+ J. Gao, G. Zheng, W. Liang, M. Hada, M. Ehara, K. Toyota, R. Fukuda, 
+ J. Hasegawa, M. Ishida, T. Nakajima, Y. Honda, O. Kitao, H. Nakai, 
+ T. Vreven, K. Throssell, J. A. Montgomery, Jr., J. E. Peralta, 
+ F. Ogliaro, M. J. Bearpark, J. J. Heyd, E. N. Brothers, K. N. Kudin, 
+ V. N. Staroverov, T. A. Keith, R. Kobayashi, J. Normand, 
+ K. Raghavachari, A. P. Rendell, J. C. Burant, S. S. Iyengar, 
+ M. Cossi, J. M. Millam, M. Klene, R. Cammi, R. L. Martin, O. Farkas, 
+ J. B. Foresman, and D. J. Fox, Gaussian, Inc., Wallingford CT, 2024.
+ 
+ *******************************************
+ Gaussian DV:  ES64L-GDVRevJ.29+  8-Aug-2024
+                 22-Aug-2024 
+ *******************************************
+ %mem=10gb
+ %nproc=10
+ Will use up to   10 processors via shared memory.
+ ----------------------------------------------------------------------
+ #p uhf/3-21g test units=bohr output=(baf) noraff extralink=l320 iop(3/
+ 25=-20) pbc=ncellmin=27 guess=(copychk,noscf) pop=none
+ ----------------------------------------------------------------------
+ 1/20=1,37=210000000,38=1,172=1/1;
+ 2/12=2/2;
+ 3/5=5,25=-20,30=1,95=27,116=2,160=2000000/1,2,3,8,20;
+ 4/5=18/1;
+ 99/5=1,6=100000,9=1,125=2000000/99;
+ Leave Link    1 at Thu Aug 22 11:14:29 2024, MaxMem=  1342177280 cpu:               0.2 elap:               0.1
+ (Enter /kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/l101.exe)
+ ------------------------------------------------
+ Gaussian Test Job 545: He open-shell periodic HF
+ ------------------------------------------------
+ Symbolic Z-matrix:
+ Charge =     0 Multiplicity =     5
+ he
+ he                    0.        0.        2. 
+ he                    0.        0.        4. 
+ he                    0.        0.        6. 
+ tv                    0.        0.        8. 
+ 
+ ITRead=  0  0  0  0  0
+ MicOpt= -1 -1 -1 -1 -1
+ NAtoms=      5 NQM=        5 NQMF=       0 NMMI=      0 NMMIF=      0
+                NMic=       0 NMicF=      0.
+                    Isotopes and Nuclear Properties:
+ (Nuclear quadrupole moments (NQMom) in fm**2, nuclear magnetic moments (NMagM)
+  in nuclear magnetons)
+
+  Atom         1           2           3           4
+ IAtWgt=           4           4           4           4
+ AtmWgt=   4.0026032   4.0026032   4.0026032   4.0026032
+ NucSpn=           0           0           0           0
+ AtZEff=    0.000000    0.000000    0.000000    0.000000
+ NQMom=    0.0000000   0.0000000   0.0000000   0.0000000
+ NMagM=    0.0000000   0.0000000   0.0000000   0.0000000
+ AtZNuc=   2.0000000   2.0000000   2.0000000   2.0000000
+ Leave Link  101 at Thu Aug 22 11:14:29 2024, MaxMem=  1342177280 cpu:               0.3 elap:               0.2
+ (Enter /kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/l202.exe)
+                           Before rotation:                           
+ ---------------------------------------------------------------------
+ Center     Atomic      Atomic             Coordinates (Angstroms)
+ Number     Number       Type             X           Y           Z
+ ---------------------------------------------------------------------
+      1          2           0        0.000000    0.000000    0.000000
+      2          2           0        0.000000    0.000000    1.058354
+      3          2           0        0.000000    0.000000    2.116709
+      4          2           0        0.000000    0.000000    3.175063
+      5         -2           0        0.000000    0.000000    4.233418
+ ---------------------------------------------------------------------
+ Lengths of translation vectors:      4.233418
+ ---------------------------------------------------------------------
+                          Input orientation:                          
+ ---------------------------------------------------------------------
+ Center     Atomic      Atomic             Coordinates (Angstroms)
+ Number     Number       Type             X           Y           Z
+ ---------------------------------------------------------------------
+      1          2           0       -1.587532    0.000000    0.000000
+      2          2           0       -0.529177    0.000000    0.000000
+      3          2           0        0.529177    0.000000    0.000000
+      4          2           0        1.587532    0.000000    0.000000
+      5         -2           0        4.233418    0.000000    0.000000
+ ---------------------------------------------------------------------
+ Lengths of translation vectors:      4.233418
+ ---------------------------------------------------------------------
+                    Distance matrix (angstroms):
+                    1          2          3          4          5
+     1  He   0.000000
+     2  He   1.058354   0.000000
+     3  He   2.116709   1.058354   0.000000
+     4  He   3.175063   2.116709   1.058354   0.000000
+     5  TV   5.820949   4.762595   3.704240   2.645886   0.000000
+          Unit Cell Distance matrix (angstroms):
+                    1          2          3          4
+     1  He   0.000000
+     2  He   1.058354   0.000000
+     3  He   2.116709   3.175063   0.000000
+     4  He   1.058354   2.116709   1.058354   0.000000
+ Symmetry turned off:
+ Cannot cope with ghost atoms or with translation vectors.
+ Stoichiometry    He4(5)
+ Framework group  C1[X(He4)]
+ Deg. of freedom     6
+ Full point group                 C1      NOp   1
+ Leave Link  202 at Thu Aug 22 11:14:29 2024, MaxMem=  1342177280 cpu:               0.1 elap:               0.0
+ (Enter /kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/l301.exe)
+ Standard basis: 3-21G (6D, 7F)
+ Ernie: Thresh=  0.10000D-02 Tol=  0.10000D-05 Strict=F.
+     8 basis functions,    12 primitive gaussians,     8 cartesian basis functions
+     6 alpha electrons        2 beta electrons
+       nuclear repulsion energy         8.6666666667 Hartrees.
+ IExCor=         0 DFT=F Ex=HF Corr=None N6=None ScaHFX=  1.000000
+ ScaDFX=  1.000000  1.000000  1.000000  1.000000  1.000000  0.000000
+ ScaDFX=  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000
+ Grid=UltraFine IRanWt=     -1 IRanGd=            0 ICorTp=0 IEDCtl=  2004
+ NAtoms=    4 NActive=    4 NUniq=    4 SFac= 1.00D+00 NAtFMM=   60 NAOKFM=F Big=F
+ Integral buffers will be    131072 words long.
+ Regular integral format.
+ Two-electron integral symmetry is turned off.
+ Leave Link  301 at Thu Aug 22 11:14:29 2024, MaxMem=  1342177280 cpu:               0.1 elap:               0.1
+ (Enter /kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/l302.exe)
+ FOutLm=  100.00.
+ Periodicity:                           1               0               0
+ Max integer dimensions:               13               0               0
+   PBC vector 1 X=     8.0000 Y=    0.0000 Z=    0.0000
+  Recp vector 1 X=     0.1250 Y=    0.0000 Z=    0.0000
+ Generated k point mesh (from -Pi to Pi):
+ K space mesh: X=     160 Y=       0 Z=       0
+ A half-cell shift: 0
+ Using k point mesh (from -Pi to Pi):
+ K space mesh: X=     160 Y=       0 Z=       0
+ A half-cell shift: 0
+ CountK=T Total number of k points:       0
+ CountK=T Total number of k points:      81
+ NPDir=1 NMtPBC=    27 NCelOv=    27 NCel=      27 NClECP=    27 NCelD=     27
+         NCelK=     27 NCelE2=    27 NClLst=     5 CellRange=   100.0.
+ One-electron integrals computed using PRISM.
+ NBasis=     8 RedAO= T EigKep=  7.63D-02  NBF=     8
+ NBsUse=     8 1.00D-06 EigRej= -1.00D+00 NBFU=     8
+ Leave Link  302 at Thu Aug 22 11:14:30 2024, MaxMem=  1342177280 cpu:               0.2 elap:               0.1
+ (Enter /kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/l303.exe)
+ DipDrv:  MaxL=1.
+ Leave Link  303 at Thu Aug 22 11:14:30 2024, MaxMem=  1342177280 cpu:               0.2 elap:               0.1
+ (Enter /kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/l308.exe)
+ Leave Link  308 at Thu Aug 22 11:14:30 2024, MaxMem=  1342177280 cpu:               0.1 elap:               0.1
+ (Enter /kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/l320.exe)
+ Enter DskPsm, NBasis=   8 NBas6D=   8 NShell=   8 IDoSP=4 IDer=0 ISMode=0 IR12Ty=1.
+ Out2e will use a cutoff of  1.00D-10
+ FoFCou: FMM=T IPFlag=           0 FMFlag=      990000 FMFlg1=        1001
+         NFxFlg=           0 DoJE=F BraDBF=F KetDBF=F FulRan=T
+         wScrn=  0.000000 ICntrl=   1000600 IOpCl=  9 I1Cent=           0 NGrid=           0
+         NMat0=    0 NMatS0=      0 NMatT0=    0 NMatD0=    0 NMtDS0=    0 NMtDT0=    0
+ Symmetry not used in FoFCou.
+ FMM levels:   2  Number of levels for PrismC:   1
+ NCel used for exchange:    27 with a corner distance of       0.00 Bohrs
+        47746 integrals produced for a total of        47746.
+ Leave Link  320 at Thu Aug 22 11:14:30 2024, MaxMem=  1342177280 cpu:               0.3 elap:               0.1
+ (Enter /kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/l401.exe)
+ Initial guess from the read-write file.
+ JPrj=0 DoOrth=T DoCkMO=T.
+ Leave Link  401 at Thu Aug 22 11:14:30 2024, MaxMem=  1342177280 cpu:               0.1 elap:               0.1
+ (Enter /kuhpc/work/caricato/m330c584/PANFS-WORK-MCARICATO/gdv_j29p/gdv/l9999.exe)
+
+ Test job not archived.
+ 1\1\GINC-R11R18N03\SP\UHF\3-21G\He4(5)\T566P276\22-Aug-2024\0\\#p uhf/
+ 3-21g test units=bohr output=(baf) noraff extralink=l320 iop(3/25=-20)
+  pbc=ncellmin=27 guess=(copychk,noscf) pop=none\\Gaussian Test Job 545
+ : He open-shell periodic HF\\0,5\He,-1.5875316328,0.,0.\He,-0.52917721
+ 09,0.,0.\He,0.5291772109,0.,0.\He,1.5875316328,0.,0.\TV,4.2334176874,0
+ .,0.\\Version=ES64L-GDVRevJ.29+\HF=0.\S2=0.\S2-1=0.\S2A=0.\RMSD=0.000e
+ +00\PG=C01 [X(He4)]\\@
+
+
+ IBM COMPATIBILITY IS LIKE PREGNANCY. YOU ARE OR
+ OR YOU ARE NOT. -- ADAM OSBORNE
+ RW2BAF: Writing raw file "t545a.baf"
+ Gaussian matrix elements                                         Version   3 NLab=11 I4Labs=T I2Labs=F
+ Write SHELL TO ATOM MAP                   from file      0 offset           0 length                   8 to binary array file.
+ Write SHELL TYPES                         from file      0 offset           0 length                   8 to binary array file.
+ Write NUMBER OF PRIMITIVES PER SHELL      from file      0 offset           0 length                   8 to binary array file.
+ Write PRIMITIVE EXPONENTS                 from file      0 offset           0 length                  12 to binary array file.
+ Write CONTRACTION COEFFICIENTS            from file      0 offset           0 length                  12 to binary array file.
+ Write P(S=P) CONTRACTION COEFFICIENTS     from file      0 offset           0 length                  12 to binary array file.
+ Write COORDINATES OF EACH SHELL           from file      0 offset           0 length                  24 to binary array file.
+ Write ONIOM CHARGE/MULT                   from file      0 offset           0 length                  32 to binary array file.
+ Write ONIOM ATOM LAYERS                   from file      0 offset           0 length                   4 to binary array file.
+ Write ONIOM ATOM MODIFIERS                from file      0 offset           0 length                   4 to binary array file.
+ Write ONIOM ATOM TYPES                    from file      0 offset           0 length                   4 to binary array file.
+ Write ONIOM LINK ATOMS                    from file      0 offset           0 length                   4 to binary array file.
+ Write ONIOM LINK CHARGES                  from file      0 offset           0 length                   4 to binary array file.
+ Write ONIOM LINK DISTANCES                from file      0 offset           0 length                  16 to binary array file.
+ Write SYMINF INTEGERS                     from file      0 offset           0 length                  26 to binary array file.
+ Write ROTTR TO INPUT ORIENTATION          from file      0 offset           0 length                  12 to binary array file.
+ Write TITLE                               from file      0 offset           0 length                  12 to binary array file.
+ Write ROUTE                               from file      0 offset           0 length                  31 to binary array file.
+ Write INFO1-9                             from file      0 offset           0 length                   9 to binary array file.
+ Write METHOD                              from file      0 offset           0 length                   1 to binary array file.
+ Write BASIS NAME                          from file      0 offset           0 length                   2 to binary array file.
+ Write LINK0 COMMANDS                      from file      0 offset           0 length                   5 to binary array file.
+ Write POINT GROUP                         from file      0 offset           0 length                   4 to binary array file.
+ Write POINT GROUP DIMENSIONS              from file      0 offset           0 length                   8 to binary array file.
+ Write POINT GROUP IRREP NAMES             from file      0 offset           0 length                   2 to binary array file.
+ Write POINT GROUP CLASS NAMES             from file      0 offset           0 length                   2 to binary array file.
+ Write POINT GROUP GENERATORS              from file      0 offset           0 length                   1 to binary array file.
+ Write POINT GROUP CLASS OF OPERATORS      from file      0 offset           0 length                   1 to binary array file.
+ Write POINT GROUP ROTATIONS               from file      0 offset           0 length                  12 to binary array file.
+ Write POINT GROUP CELL TRANS              from file      0 offset           0 length                   3 to binary array file.
+ Write POINT GROUP CHAR TABLE              from file      0 offset           0 length                   1 to binary array file.
+ Write POINT GROUP ATOM PERMUTATIONS       from file      0 offset           0 length                   4 to binary array file.
+ Write ILSW                                from file      0 offset           0 length                 100 to binary array file.
+ Write RLSW                                from file      0 offset           0 length                 100 to binary array file.
+ Write GAUSSIAN SCALARS                    from file 100501 offset           0 to binary array file.
+ Write OPTIMIZATION FLAGS                  from file      0 offset           0 length                   4 to binary array file.
+ Write INTEGER ISO                         from file      0 offset           0 length                   4 to binary array file.
+ Write INTEGER FRAGMENT                    from file      0 offset           0 length                   4 to binary array file.
+ Write REAL ZEFFECTIVE                     from file      0 offset           0 length                   4 to binary array file.
+ Write REAL ZNUCLEAR                       from file      0 offset           0 length                   4 to binary array file.
+ Write NUCLEAR GRADIENT                    from file      0 offset           0 length                  12 to binary array file.
+ Write NON-ADIABATIC COUPLING              from file      0 offset           0 length                  12 to binary array file.
+ Write FINITE EM FIELD                     from file 100521 offset           0 length                 105 to binary array file.
+ Write OVERLAP                             from file 100514 offset          36 length                 972 to binary array file.
+ Write CORE HAMILTONIAN ALPHA              from file 100515 offset           0 length                 972 to binary array file.
+ Write CORE HAMILTONIAN BETA               from file 100515 offset         972 length                 972 to binary array file.
+ Write KINETIC ENERGY                      from file 100516 offset           0 length                 972 to binary array file.
+ Write ORTHONORMAL BASIS                   from file 100685 offset           0 length                  64 to binary array file.
+ Write DIPOLE INTEGRALS                    from file 100518 offset           0 length                 108 to binary array file.
+ Write QUADRUPOLE INTEGRALS                from file 100518 offset         108 length                 216 to binary array file.
+ Write OCTOPOLE INTEGRALS                  from file 100518 offset         324 length                 360 to binary array file.
+ Write HEXADECAPOLE INTEGRALS              from file 100518 offset         684 length                 540 to binary array file.
+ Write DIP VEL INTEGRALS                   from file 100572 offset           0 length                 108 to binary array file.
+ Write R X DEL INTEGRALS                   from file 100572 offset         108 length                 108 to binary array file.
+ Write R X DEL - DEL X R INTEGRALS         from file 100572 offset         216 length                 216 to binary array file.
+ Array MAGNETIC FIELD P1 (GIAO)             on  file 100696 does not exist.
+ Write ALPHA ORBITAL ENERGIES              from file      0 offset           0 length                   8 to binary array file.
+ Write BETA ORBITAL ENERGIES               from file      0 offset           0 length                   8 to binary array file.
+ Array ALPHA MO COEFFICIENTS                on  file 100524 does not exist.
+ Array BETA MO COEFFICIENTS                 on  file 100526 does not exist.
+ Array ALPHA SCF DENSITY MATRIX             on  file 100528 does not exist.
+ Array BETA SCF DENSITY MATRIX              on  file 100530 does not exist.
+ Array SCF ORBITAL OCCUPATIONS              on  file 100861 does not exist.
+ Array ENERGY-WEIGHTED DENSITY              on  file 100571 does not exist.
+ Write PBC 2E INTEGRALS                    to binary array file, NR=1 ITotal=       47746.
+ Job cpu time:       0 days  0 hours  0 minutes  2.0 seconds.
+ Elapsed time:       0 days  0 hours  0 minutes  1.4 seconds.
+ File lengths (MBytes):  RWF=      6 Int=      1 D2E=      0 Chk=      1 Scr=      1
+ Normal termination of Gaussian DV at Thu Aug 22 11:14:31 2024.

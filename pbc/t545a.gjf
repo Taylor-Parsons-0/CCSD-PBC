@@ -1,0 +1,17 @@
+%mem=10gb
+%nproc=10
+#p uhf/3-21g test units=bohr output=(baf) noraff extralink=l320 iop(3/25=-20) pbc=ncellmin=27
+guess=(copychk,noscf) pop=none
+
+Gaussian Test Job 545:
+He open-shell periodic HF
+
+0,5
+he
+he 0.0 0.0 2.0
+he 0.0 0.0 4.0
+he 0.0 0.0 6.0
+tv 0.0 0.0 8.0
+
+t545a.baf
+
