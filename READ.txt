@@ -1,0 +1,4 @@
+Run the program using >>py main.py <MOLECULE NAME>
+main.py calls the needed routines
+ccsdAmps.py does CCSD
+stuff.py reads the necessary information from the gauopen outputs (<MOLECULE NAME>_txts) and does the MO transformation
