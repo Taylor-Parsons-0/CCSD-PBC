@@ -52,11 +52,16 @@ def getFort(molecule, log):
   Fock=np.zeros((NB*2))
   # for i in range(NB*2):
   #   Fock[i]=OE[i//2]
+#  Fock[:NB] = OE[:NB]
+#  Fock[NB:] = OE[:NB]
+#  Fock=np.diag(Fock)
+
   Fock[:O] = OE[:O]
   Fock[O:2*O] = OE[:O]
   Fock[2*O:2*O+V] = OE[O:NB]
-  Fock[2*O+V:] = OE[O:NB]
+  Fock[2*O+V:] = OE[O:NB] 
   Fock=np.diag(Fock)
+
 #MO Coefficients
 #  Coeff=np.zeros((NB,NB))
 #  with open(f"{mol}_txts/mocoef.txt","r") as reader:
@@ -122,7 +127,7 @@ def get2e(AOInt, log):
 #########################################################
 ####### Change to MO Basis ##############################
 #########################################################
-def conMO(O, V, NB, scfE, Fock, Coeff, AOInt, IJKL, ABCD, IABC, IJAB, IJKA, IAJB):
+def conMO(O, V, NB, Fock, Coeff, AOInt, IJKL, ABCD, IABC, IJAB, IJKA, IAJB):
 #  O, V, NB, scfE, Fock, Coeff=getFort(molecule, log)
 
 #  #Initialize temporary arrs
@@ -173,56 +178,70 @@ def conMO(O, V, NB, scfE, Fock, Coeff, AOInt, IJKL, ABCD, IABC, IJAB, IJKA, IAJB
     for q in range(NB):
       for r in range(NB):
         for s in range(NB):
-          coulomb=twoE[p,r,q,s]
-          exchange=twoE[p,s,q,r]
-          MO[p,q,r,s]=round(coulomb-exchange,16)
-          MO[p+NB,q+NB,r+NB,s+NB]=round(coulomb-exchange,16)
-          MO[p,q+NB,r,s+NB]=round(coulomb,16)
-          MO[p,q+NB,r+NB,s]=round(-exchange,16)
-          MO[p+NB,q,r+NB,s]=round(coulomb,16)
-          MO[p+NB,q,r,s+NB]=round(-exchange,16)
-
-
-
+          coulomb = twoE[p,r,q,s]
+          exchange = twoE[p,s,q,r]
+          MO[p,q,r,s] = round(coulomb-exchange,16)
+          MO[p+NB,q+NB,r+NB,s+NB] = round(coulomb-exchange,16)
+          MO[p,q+NB,r,s+NB] = round(coulomb,16)
+          MO[p,q+NB,r+NB,s] = round(-exchange,16)
+          MO[p+NB,q,r+NB,s] = round(coulomb,16)
+          MO[p+NB,q,r,s+NB] = round(-exchange,16)
           
-  #print(np.sum(abs(MO)))
-  # O=O
-  # V=V
 # IJKL  
   for i in range(O):
     for j in range(O):
       for k in range(O):
         for l in range(O):
-          IJKL[i,j,k,l]=MO[i,j,k,l]
+          IJKL[i,j,k,l] = MO[i,j,k,l]
+          IJKL[i+O,j+O,k+O,l+O] = MO[i+NB, j+NB, k+NB, l+NB]
+          IJKL[i+O, j, k+O, l] = MO[i+NB, j, k+NB, l]
+          IJKL[i, j+O, a, l+O] = MO[i,j+NB,k,l+NB]
+          IJKL[i+O,j,k,l+O] = MO[i+NB,j,k,l+NB]
+          IJKL[i,j+O,k+O,l] = MO[i,j+NB,k+NB,l]
 # ABCD          
   for a in range(V):
     for b in range(V):
       for c in range(V):
         for d in range(V):
-          ABCD[a,b,c,d]=MO[a+O,b+O,c+O,d+O]
+          ABCD[a,b,c,d] = MO[a+O,b+O,c+O,d+O]
+          ABCD[a+V,b+V,c+V,d+V] = MO[a+O+NB,b+O+NB,c+O+NB,d+O+NB]
+          ABCD[a+V,b,c+V,d] = MO[a+O+NB,b+O,c+O+NB,d+O]
+          ABCD[a,b+V,c,d+V] = MO[a+O,b+O+NB,c+O,d+O+NB]
+          ABCD[a+V,b,c,d+V] = MO[a+O+NB,b+O,c+O,d+O+NB]
+          ABCD[a,b+V,c+V,d] = MO[a+O,b+O+NB,c+O+NB,d+O]
 # IABC          
   for i in range(O):
     for a in range(V):
       for b in range(V):
         for c in range(V):
-          IABC[i,a,b,c]=MO[i,a+O,b+O,c+O]
+          IABC[i,a,b,c] = MO[i,a+O,b+O,c+O]
+          IABC[i+O,a+V,b+V,c+V] = MO[i+NB,a+O+NB,b+O+NB,c+O+NB]
+          IABC[i+O,a,b+V,c] = MO[i+NB,a+O,b+O+NB,c+O]
+          IABC[i,a+V,b,c+V] = MO[i,a+O+NB,b,c+O+NB]
+          IABC[i+O,a,b,c+V] = MO[i+NB,a,b,c+O+NB]
+          IABC[i,a+V,b+V,c] = MO[i,a+O+NB,b+O+NB,c]
 # IJAB          
   for i in range(O):
     for j in range(O):
       for a in range(V):
         for b in range(V):
-          IJAB[i,j,a,b]=MO[i,j,a+O,b+O]
-          IJAB[i+O,j+O,a+V,b+V]=MO[i+NB,j+NB,a+O+NB,b+O+NB]
-          IJAB[i+O,j,a+V,b]=MO[i+NB,j,a+O+NB,b+O]
-          IJAB[i,j+O,a,b+V]=MO[i,j+NB,a+O,b+O+NB]
-          IJAB[i+O,j,a,b+V]=MO[i+NB,j,a+O,b+O+NB]
-          IJAB[i,j+O,a+V,b]=MO[i,j+NB,a+O+NB,b+O]
+          IJAB[i,j,a,b] = MO[i,j,a+O,b+O]
+          IJAB[i+O,j+O,a+V,b+V] = MO[i+NB,j+NB,a+O+NB,b+O+NB]
+          IJAB[i+O,j,a+V,b] = MO[i+NB,j,a+O+NB,b+O]
+          IJAB[i,j+O,a,b+V] = MO[i,j+NB,a+O,b+O+NB]
+          IJAB[i+O,j,a,b+V] = MO[i+NB,j,a+O,b+O+NB]
+          IJAB[i,j+O,a+V,b] = MO[i,j+NB,a+O+NB,b+O]
 # IJKA
   for i in range(O):
     for j in range(O):
       for k in range(O):
         for a in range(V):
-          IJKA[i,j,k,a]=MO[i,j,k,a+O]
+          IJKA[i,j,k,a] = MO[i,j,k,a+O]
+          IJKA[i+O,j+O,k+O,a+V] = MO[i+NB,j+NB,k+NB,a+O+NB]
+          IJKA[i+O,j,k+O,a] = MO[i+NB,j,k+NB,a]
+          IJKA[i,j+O,k,a+V] = MO[i,j+NB,k,a+O+NB]
+          IJKA[i+O,j,k,a+V] = MO[i+NB,j,k,a+O+NB]
+          IJKA[i,j+O,k+O,a] = MO[i,j+NB,k+NB,a]
   # for a in range(V):
   #   for i in range(O):
   #     for b in range(V):
@@ -243,7 +262,12 @@ def conMO(O, V, NB, scfE, Fock, Coeff, AOInt, IJKL, ABCD, IABC, IJAB, IJKA, IAJB
     for a in range(V):
       for j in range(O):
         for b in range(V):
-          IAJB[i,a,j,b]=MO[i,a+O,j,b+O]
+          IAJB[i,a,j,b] = MO[i,a+O,j,b+O]
+          IAJB[i+O,a+V,j+O,b+V] = MO[i+NB,a+O+NB,j+NB,b+O+NB]
+          IAJB[i+O,a,j+O,b] = MO[i+NB,a,j+NB,b]
+          IAJB[i,a+V,j,b+V] = MO[i,a+O+NB,j,b+O+NB]
+          IAJB[i+O,a,j,b+V] = MO[i+NB,a,j,b+O+NB]
+          IAJB[i,a+V,j+O,b] = MO[i,a+O+NB,j+NB,b]
   # for a in range(V):
   #   for b in range(V):
   #     for c in range(V):
