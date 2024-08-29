@@ -52,8 +52,10 @@ def getFort(molecule, log):
   Fock=np.zeros((NB*2))
   # for i in range(NB*2):
   #   Fock[i]=OE[i//2]
-  Fock[:NB] = OE[:NB]
-  Fock[NB:] = OE[:NB]
+  Fock[:O] = OE[:O]
+  Fock[O:2*O] = OE[:O]
+  Fock[2*O:2*O+V] = OE[O:NB]
+  Fock[2*O+V:] = OE[O:NB]
   Fock=np.diag(Fock)
 #MO Coefficients
 #  Coeff=np.zeros((NB,NB))

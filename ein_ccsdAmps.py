@@ -32,26 +32,28 @@ twoE=np.zeros((NB, NB, NB, NB))
 #####################################################################
 #Tau equations ######################################################
 #####################################################################
-def tau_tildeEq(O, V, t1, t2, T):#NB, Fock, t1, t2, MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, T):
+def tau_tildeEq(T, O, V, t1, t2):
   if T==1:
-    tau_tilde=np.zeros((V, V, O, O))
-    #Equation (10)
-    for a in range(V):
-      for b in range(V):
-        for i in range(O):
-          for j in range(O):
-            tau_tilde[a,b,i,j]=t2[a,b,i,j]+(1/2)*(t1[a,i]*t1[b,j]-t1[b,i]*t1[a,j])
+    # tau_tilde=np.zeros((O, O, V, V))
+    # #Equation (10)
+    # for a in range(V):
+    #   for b in range(V):
+    #     for i in range(O):
+    #       for j in range(O):
+    #         tau_tilde[i,j,a,b]=t2[i,j,a,b]+(1/2)*(t1[i,a]*t1[j,b]-t1[i,b]*t1[j,a])
+    tau_tilde = t2 + (1/2)*(np.einsum('ia,jb->ijab',t1,t1,optimiza=True) - np.einsum('ib,ja->ijab',t1,t1,optimiza=True))
   return tau_tilde
 
-def tauEq(O, V, t1, t2, T):#NB, Fock, t1, t2, MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, T):
+def tauEq(T, O, V, t1, t2):
   if T==1:
-    tau=np.zeros((V, V, O, O))
-    #Equation (11)
-    for a in range(V):
-      for b in range(V):
-        for i in range(O):
-          for j in range(O):
-            tau[a,b,i,j]=t2[a,b,i,j]+t1[a,i]*t1[b,j]-t1[b,i]*t1[a,j]
+    # tau=np.zeros((V, V, O, O))
+    # #Equation (11)
+    # for a in range(V):
+    #   for b in range(V):
+    #     for i in range(O):
+    #       for j in range(O):
+    #         tau[a,b,i,j]=t2[a,b,i,j]+t1[a,i]*t1[b,j]-t1[b,i]*t1[a,j]
+    tau = t2 + np.einsum('ia,jb->ijab',t1,t1,optimiza=True) - np.einsum('ib,ja->ijab',t1,t1,optimiza=True)
   return tau
 
 ########################################################################
@@ -178,251 +180,53 @@ def intermediateEqs(O, V, NB, Fock, t1, t2, MO, IJKL, ABCD, IABC, IJAB, IJKA, AI
 ##################################################################################
 
 #Final t1
-#t1_f=np.zeros((NB, NB))
-def t1Eq(O, V, NB, Fock, t1, t2, MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, T, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, D1):
+def t1Eq(T, O, Fock, t1, t2, IABC, IJKA, IAJB, F_ae, F_mi, F_me, D1):
+  O2 = 2*O
   if T==1:
-#    t1_f=np.zeros((V, O))
-#  #Equation (2)
-#    for a in range(V):
-#      for i in range(O):
-#        t1_f[a,i]=Fock[i,a+O]
-#        for e in range(V):
-#          t1_f[a,i]+=t1[e,i]*F_ae[a,e]
-#        for m in range(O):
-#          t1_f[a,i]-= t1[a,m]*F_mi[m,i]
-#          for e in range(V):
-#            t1_f[a,i]+=t2[a,e,i,m]*F_me[m,e]
-#            for f in range(V):
-#              t1_f[a,i]-= (1/2)*t2[e,f,i,m]*IABC[m,a,e,f] #MO[m,a+O,e+O,f+O]
-#            for n in range(O):
-#              t1_f[a,i]-= (1/2)*t2[a,e,m,n]*IJAK[n,m,e,i] #MO[n,m,e+O,i]
-#        for n in range(O):
-#          for f in range(V):
-#            t1_f[a,i]-= t1[f,n]*IAJB[n,a,i,f] #MO[n,a+O,i,f+O]
-#        t1_f[a,i]=t1_f[a,i]/D1[a,i]
-#    t1_f = np.zeros((V, O))
-    t1_f = np.copy(Fock[O:, :O])
-    t1_f += np.einsum('ei,ae->ai', t1, F_ae)
-    t1_f -= np.einsum('am,mi->ai', t1, F_mi)
-    t1_f += np.einsum('aeim,me->ai', t2, F_me)
-    t1_f -= 0.5 * np.einsum('efim,maef->ai', t2, IABC)#MO[:O, O:, O:, O:])
-    t1_f += 0.5 * np.einsum('aemn,nmie->ai', t2, IJKA)#MO[:O, :O, O:, :O])
-    t1_f -= np.einsum('fn,naif->ai', t1, IAJB)#MO[:O, O:, :O, O:])
+    t1_f = np.copy(Fock[:O2, O2:])
+    t1_f += np.einsum('ie,ae->ia', t1, F_ae,optimize=True)
+    t1_f -= np.einsum('ma,mi->ia', t1, F_mi,optimize=True)
+    t1_f += np.einsum('imae,me->ia', t2, F_me,optimize=True)
+    t1_f -= 0.5 * np.einsum('imef,maef->ia', t2, IABC,optimize=True)#MO[:O, O:, O:, O:])
+    t1_f += 0.5 * np.einsum('mnae,nmie->ia', t2, IJKA,optimize=True)#MO[:O, :O, O:, :O])
+    t1_f -= np.einsum('nf,naif->ia', t1, IAJB,optimize=True)#MO[:O, O:, :O, O:])
     t1_f /= D1
   return t1_f
 
 #Final t2
-def t2Eq(O, V, NB, Fock, t1, t2, MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, T, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, D2):
+def t2Eq(T, t1, t2, IABC, IJAB, IJKA, IAJB, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, D2):
   if T==1:
-#Initialize T2
-    t2_f=np.zeros((V, V, O, O))
-#Form 8 N^5 Intermediates
-#    X1=np.zeros((V, O, O, O))
-#    X2=np.zeros((V, O, O, O))
-#    X3=np.zeros((NB, NB, NB, NB))
-#    X4=np.zeros((V, V, O, V))
-#    X5=np.zeros((NB, NB, NB, NB))
-#    X6=np.zeros((O,V,O,O))
-#    X7=np.zeros((NB,NB,NB,NB))
-#    X8=np.zeros((O, V, O, O))
-#
-#    I1=np.zeros((V, V, O, O))
-#    I2=np.zeros((V, V, O, O))
-#    I3=np.zeros((NB, NB, NB, NB))
-#    I4=np.zeros((V, V, O, O))
-#    I5=np.zeros((NB, NB, NB, NB))
-#    I6=np.zeros((V, V, O, O))
-#    I7=np.zeros((NB, NB, NB, NB))
-#    I8=np.zeros((V, V, O, O))
-
-#Form I1
-#    for a in range(O,NB):
-#      for i in range(O):
-#        for j in range(O,NB):
-#          for e in range(O,NB):
-#            for m in range(O):
-#              X1[a,m,i,j]+=F_me[m,e]*t2[a,e,i,j]
-#    for a in range(O,NB):
-#      for b in range(O,NB):
-#        for i in range(O):
-#          for j in range(O):
-#            for m in range(O):
-#              I1[a,b,i,j]+=t1[b,m]*X1[a,m,i,j]
-#    print(np.shape(t2))
-    X1=np.einsum("me,aeij->amij",F_me,t2)
-    I1=np.einsum("bm,amij->abij",t1,X1)
-#    print(np.sum(abs(I1)))
-#    print(np.sum(abs(I1))) 
-#Form I2
-#    for b in range(V):
-#      for i in range(O):
-#        for j in range(O):
-#          for e in range(V):
-#            for m in range(O):
-#              X2[b,m,i,j]+=F_me[m,e]*t2[b,e,i,j]
-#
-#
-#    for a in range(V):
-#      for b in range(V):
-#        for i in range(O):
-#          for j in range(O):
-#            for m in range(O):
-#              I2[b,a,i,j]+=t1[a,m]*X2[b,m,i,j]#
-#    X2=np.einsum("me,beij->bmij",F_me,t2)
-#    I2=np.einsum("am,bmij->baij",t1,X2)
-#    I2=I1
-#    print(np.sum(abs(I2)))
-#Form I3 
-#    for a in range(O,NB):
-#      for b in range(O,NB):
-#        for i in range(O):
-#          for m in range(O):
-#            for e in range(O,NB):
-#              X3[a,b,i,e]+=F_me[m,e]*t2[a,b,i,m]
-#
-#
-#    for a in range(O,NB):
-#      for b in range(O,NB):
-#        for i in range(O):
-#          for j in range(O):
-#            for e in range(O,NB):
-#              I3[a,b,i,j]+=t1[e,j]*X3[a,b,i,e]
-    X3=np.einsum("me,abim->abie",F_me,t2)
-    I3=np.einsum("ej,abie->abij",t1,X3)
-#Form I4
-#    for a in range(V):
-#      for b in range(V):
-#        for j in range(O):
-#          for m in range(O):
-#            for e in range(V):
-#              X4[a,b,j,e]+=F_me[m,e]*t2[a,b,j,m]
-#
-#
-#    for a in range(V):
-#      for b in range(V):
-#        for i in range(O):
-#          for j in range(O):
-#            for e in range(V):
-#              I4[a,b,j,i]+=t1[e,i]*X4[a,b,j,e]
-    I4=I3
-#Form I5
-#    for b in range(O,NB):
-#      for i in range(O):
-#        for j in range(O):
-#          for m in range(O):
-#            for e in range(O,NB):
-#              X5[m,b,i,j]+=t1[e,i]*IABJ[m,b,e,j] #MO[m,b,e,j]
-#
-#
-#    for a in range(O,NB):
-#      for b in range(O,NB):
-#        for i in range(O):
-#          for j in range(O):
-#            for m in range(O):
-#              I5[a,b,i,j]+=t1[a,m]*X5[m,b,i,j]
-    X5=np.einsum("ei,mbej->mbij",t1,IABJ)
-    I5=np.einsum("am,mbij->abij",t1,X5)
-#Form I6
-#    for a in range(V):
-#      for i in range(O):
-#        for j in range(O):
-#          for m in range(O):
-#            for e in range(V):
-#              X6[m,a,i,j]+=t1[e,i]*IABJ[m,a,e,j]
-#
-#
-#    for a in range(V):
-#      for b in range(V):
-#        for i in range(O):
-#          for j in range(O):
-#            for m in range(O):
-#              I6[b,a,i,j]+=t1[b,m]*X6[m,a,i,j]
-    I6=I5
-#Form I7
-#    for b in range(O,NB):
-#      for i in range(O):
-#        for j in range(O):
-#          for m in range(O):
-#            for e in range(O,NB):
-#              X7[m,b,j,i]+=t1[e,j]*IABJ[m,b,e,i] #MO[m,b,e,i]
-#
-#
-#    for a in range(O,NB):
-#      for b in range(O,NB):
-#        for i in range(O):
-#          for j in range(O):
-#            for m in range(O):
-#              I7[a,b,j,i]+=t1[a,m]*X7[m,b,j,i]
-    X7=np.einsum("ej,mbei->mbji",t1,IABJ)
-    I7=np.einsum("am,mbji->abij",t1,X7)
-#Form I8
-#    for a in range(V):
-#      for i in range(O):
-#        for j in range(O):
-#          for m in range(O):
-#            for e in range(V):
-#              X8[m,a,j,i]+=t1[e,j]*IABJ[m,a,e,i]
-#
-#
-#    for a in range(V):
-#      for b in range(V):
-#        for i in range(O):
-#          for j in range(O):
-#            for m in range(O):
-#              I8[b,a,j,i]+=t1[b,m]*X8[m,a,j,i]
-    I8=I7
+    #Form I1
+    X1=np.einsum("me,ijae->amij",F_me,t2)
+    I1=np.einsum("mb,amij->ijab",t1,X1)
+    #Form I3 
+    X3=np.einsum("me,imab->abie",F_me,t2)
+    I3=np.einsum("je,abie->ijab",t1,X3)
+    #Form I5
+    #MC - changed sign to us IAJB instead of IABJ
+    X5=-np.einsum("ie,mbje->mbij",t1,IAJB) + np.einsum("je,mbie->mbij",t1,IAJB)
+    I5=np.einsum("ma,mbij->ijab",t1,X5)
+    # #Form I7
+    # #MC - changed sign to us IAJB instead of IABJ
+    # X7=
+    # I7=np.einsum("ma,mbji->abij",t1,X7)
     #Equation (3)
-    t2_f = np.transpose(IJAB, axes=(2,3,0,1)) - (1/2)*I1 + (1/2)*np.transpose(I1,axes=(1,0,2,3)) - (1/2)*( I3 - np.transpose(I3, axes=(0,1,3,2)) ) - (I5 - np.transpose(I5,axes=(1,0,2,3))) + I7 - np.transpose(I7, axes=(1,0,2,3))
-    t2_f += np.einsum("be,aeij->abij",F_ae,t2,optimize=True) - np.einsum("ae,beij->abij",F_ae,t2,optimize=True) + np.einsum("ei,jeba->abij",t1,IABC,optimize=True) - np.einsum("ej,ieba->abij",t1,IABC,optimize=True)
-    t2_f += (1/2)*np.einsum("efij,abef->abij",tau,W_abef,optimize=True)  
-    t2_f -= np.einsum("mj,abim->abij",F_mi,t2,optimize=True) - np.einsum("mi,abjm->abij",F_mi,t2,optimize=True) + np.einsum("am,mbij->abij",t1,IAJK,optimize=True) - np.einsum("bm,maij->abij",t1,IAJK,optimize=True)
-    t2_f += np.einsum("aeim,mbej->abij",t2,W_mbej,optimize=True) - np.einsum("beim,maej->abij",t2,W_mbej,optimize=True) - np.einsum("aejm,mbei->abij",t2,W_mbej,optimize=True) + np.einsum("bejm,maei->abij",t2,W_mbej,optimize=True)
-    t2_f += (1/2)*np.einsum("abmn,mnij->abij",tau,W_mnij,optimize=True)
-#    for a in range(V):
-#      for b in range(V):
-#        for i in range(O):
-#          for j in range(O):
-#            t2_f[a,b,i,j]=IJAB[i,j,a,b] #MO[i,j,a,b]
-#            t2_f[a,b,i,j]+=(-1/2)*I1[a,b,i,j]+(1/2)*I1[b,a,i,j]-(1/2)*(I3[a,b,i,j]-I4[a,b,j,i]) - (I5[a,b,i,j]-I6[b,a,i,j]) + I7[a,b,j,i]-I8[b,a,j,i]
-#            t2_f[a,b,i,j]+=  I7[a,b,j,i]-I8[b,a,j,i]
-#            for e in range(V):
-#             t2_f[a,b,i,j]+=t2[a,e,i,j]*F_ae[b,e]-t2[b,e,i,j]*F_ae[a,e] +t1[e,i]*ABCI[a,b,e,j]-t1[e,j]*ABCI[a,b,e,i]
-#              for f in range(V):
-#                              t2_f[a,b,i,j]+=(1/2)*tau[e,f,i,j]*W_abef[a,b,e,f]
-#            for m in range(O):
-#              t2_f[a,b,i,j]-= t2[a,b,i,m]*F_mi[m,j]-t2[a,b,j,m]*F_mi[m,i] +t1[a,m]*IAJK[m,b,i,j]-t1[b,m]*IAJK[m,a,i,j]
-                                                                                  
-#              for e in range(V):
-#                  t2_f[a,b,i,j]+=t2[a,e,i,m]*W_mbej[m,b,e,j]-t2[b,e,i,m]*W_mbej[m,a,e,j] +(-1)*t2[a,e,j,m]*W_mbej[m,b,e,i] + t2[b,e,j,m]*W_mbej[m,a,e,i]
-#              for n in range(O):
-#                t2_f[a,b,i,j]+=(1/2)*tau[a,b,m,n]*W_mnij[m,n,i,j]
-#            t2_f[a,b,i,j]=t2_f[a,b,i,j]/D2[a,b,i,j]
-#    print("I7",np.shape(I1))
-#    print(np.shape(np.transpose(I1,axes=(0,1,3,2))))
-#    print("I1",np.shape(t2))
-    #t2 = np.transpose(IJAB, axes=(2,3,0,1)) + (1/2)*I1 - (1/2)*np.transpose(I1,axes=(1,0,2,3)) - (1/2)*( I3 - np.transpose(I3, axes=(0,1,3,2))  ) - (I5 - np.transpose(I5,axes=(1,0,2,3))) + I7 - np.transpose(I7, axes=(0,1,3,2))
+    t2_f = IJAB - (1/2)*I1 + (1/2)*np.transpose(I1,axes=(0,1,3,2)) - (1/2)*(I3-np.transpose(I3, axes=(1,0,2,3))) - (I5 - np.transpose(I5,axes=(0,1,3,2)))
+    #+ I7 - np.transpose(I7, axes=(1,0,2,3))
+    t2_f += np.einsum("be,ijae->ijab",F_ae,t2,optimize=True) - np.einsum("ae,ijbe->ijab",F_ae,t2,optimize=True) + np.einsum("ie,jeba->ijab",t1,IABC,optimize=True) - np.einsum("je,ieba->ijab",t1,IABC,optimize=True)
+    t2_f += (1/2)*np.einsum("ijef,abef->ijab",tau,W_abef,optimize=True)  
+    t2_f -= np.einsum("mj,imab->ijab",F_mi,t2,optimize=True) - np.einsum("mi,jmab->ijab",F_mi,t2,optimize=True) + np.einsum("ma,ijmb->ijab",t1,IJKA,optimize=True) - np.einsum("mb,ijma->ijab",t1,IJKA,optimize=True)
+    t2_f += np.einsum("imae,mbej->ijab",t2,W_mbej,optimize=True) - np.einsum("imbe,maej->ijab",t2,W_mbej,optimize=True) - np.einsum("jmae,mbei->ijab",t2,W_mbej,optimize=True) + np.einsum("jmbe,maei->ijab",t2,W_mbej,optimize=True)
+    t2_f += (1/2)*np.einsum("mnab,mnij->ijab",tau,W_mnij,optimize=True)
     t2_f /= D2    
   return t2_f
 
-
-
-
-#########################################################
+###########################################################################
+def E_CCSD(O, Fock, t1, IJAB, tau):
 #Solve for CCSD energy###################################
-#########################################################
-#Equation 1
-#def CCSD(O, V, NB, Fock, t1, t2, MO,  IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, T, tau):
-#  E_Corr2=0
-#  for i in range(O):
-#    for a in range(V):
-#      E_Corr2+=t1[a,i]*Fock[i,a+O]
-#      for j in range(O):
-#        for b in range(V):
-#          E_Corr2+=(1/4)*tau[a,b,i,j]*IJAB[i,j,a,b]
-#  return E_Corr2
-def CCSD(O, V, NB, Fock, t1, IJAB, T, tau):#MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, T, tau):
-  E_Corr2_1 = np.einsum('ai,ia->', t1, Fock[:O, O:])
-  E_Corr2_2 = 0.25 * np.einsum('abij,ijab->', tau, IJAB)
+  O2 = 2*O
+  E_Corr2_1 = np.einsum('ia,ia->', t1, Fock[:O2, O2:])
+  E_Corr2_2 = 0.25 * np.einsum('ijab,ijab->', tau, IJAB)
   E_Corr2 = E_Corr2_1 + E_Corr2_2
   
   return E_Corr2
