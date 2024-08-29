@@ -18,59 +18,83 @@ log=f"{molecule}.log"
 
 #Occupied orbitals
 O, V, NB, scfE, Fock, Coeff=getFort(molecule, log)
+print(f"Info molecule, {O},{V},{NB},{scfE}")
 #Initialize arrays
 coul=np.zeros((NB,NB,NB,NB))
 exc=np.zeros((NB,NB,NB,NB))
 OE=np.zeros((NB))
 AOInt=np.zeros((NB, NB, NB, NB))
 twoE=np.zeros((NB, NB, NB, NB))
-O=O*2
-V=V*2
-NB=NB*2
-IJKL=np.zeros((O,O,O,O))
-ABCD=np.zeros((V,V,V,V))
-IABC=np.zeros((O,V,V,V))
-IJAB=np.zeros((O,O,V,V))
-IJKA=np.zeros((O,O,O,V))
-AIBC=np.zeros((V,O,V,V))
-IABJ=np.zeros((O,V,V,O))
-IJAK=np.zeros((O,O,V,O))
-IAJB=np.zeros((O,V,O,V))
-ABCI=np.zeros((V,V,V,O))
-IAJK=np.zeros((O,V,O,O))
-MO=np.zeros((NB, NB, NB, NB))
-delta=np.identity(NB)
-twoE=np.zeros((NB, NB, NB, NB))
+# O=O*2
+# V=V*2
+#NB=NB*2
+IJKL=np.zeros((2*O,2*O,2*O,2*O))
+ABCD=np.zeros((2*V,2*V,2*V,2*V))
+IABC=np.zeros((2*O,2*V,2*V,2*V))
+IJAB=np.zeros((2*O,2*O,2*V,2*V))
+IJKA=np.zeros((2*O,2*O,2*O,2*V))
+#AIBC=np.zeros((2*V,2*O,2*V,2*V))
+#IABJ=np.zeros((2*O,2*V,2*V,2*O))
+#IJAK=np.zeros((2*O,2*O,2*V,2*O))
+IAJB=np.zeros((2*O,2*V,2*O,2*V))
+#ABCI=np.zeros((2*V,2*V,2*V,2*O))
+#IAJK=np.zeros((2*O,2*V,2*O,2*O))
+#MO=np.zeros((2*NB, 2*NB, 2*NB, 2*NB))
+delta=np.identity(2*NB)
+#twoE=np.zeros((2*NB, 2*NB, 2*NB, 2*NB))
 
 #Get 2e integrals
 AOInt=get2e(AOInt, log)
 
 #Change to spin orbital form
-MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK=conMO(twoE, MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, Coeff, NB, AOInt, molecule, log)
+IJKL, ABCD, IABC, IJAB, IJKA, IAJB=conMO(O, V, NB, scfE, Fock, Coeff, AOInt, IJKL, ABCD, IABC, IJAB, IJKA, IAJB)
 
 #Initialize T1 and T2
 #O=O*2
 #V=V*2
 #NB=NB*2
-t1=np.zeros((V, O))
-t2=np.zeros((V, V, O, O))
+# t1=np.zeros((V, O))
+# t2=np.zeros((V, V, O, O))
 #Define Denominator Arrays
-D1=np.zeros((V, O))
-D2=np.zeros((V, V, O, O))
+# D1=np.zeros((V, O))
+D2=np.zeros((2*O, 2*O, 2*V, 2*V))
+t2=np.zeros((2*O, 2*O, 2*V, 2*V))
 #Initial T2 Guess
-MP2=np.zeros((NB,NB,NB,NB))
+#print("Fock\n",Fock)
+OV = O + V
 for i in range(O):
   for j in range(O):
     for a in range(V):
       for b in range(V):
-        D2[a,b,i,j]=Fock[i,i]+Fock[j,j]-Fock[a+O,a+O]-Fock[b+O,b+O]
-        t2[a,b,i,j]+=IJAB[i,j,a,b]/D2[a,b,i,j]
-print("guess",np.sum(abs(t2)))
+        D2[i,j,a,b]=Fock[i,i]+Fock[j,j]-Fock[a+O,a+O]-Fock[b+O,b+O]
+        D2[i+O,j+O,a+V,b+V]=Fock[i+OV,i+OV]+Fock[j+OV,j+OV]-Fock[a+O+OV,a+O+OV]-Fock[b+O+OV,b+O+OV]
+        D2[i,j+O,a,b+V]=Fock[i,i]+Fock[j+OV,j+OV]-Fock[a+O,a+O]-Fock[b+O+OV,b+O+OV]
+        D2[i,j+O,a+V,b]=Fock[i,i]+Fock[j+OV,j+OV]-Fock[a+O+OV,a+O+OV]-Fock[b+O,b+O]
+        D2[i+O,j,a+V,b]=Fock[i+OV,i+OV]+Fock[j,j]-Fock[a+O+OV,a+O+OV]-Fock[b+O,b+O]
+        D2[i+O,j,a,b+V]=Fock[i+OV,i+OV]+Fock[j,j]-Fock[a+O,a+O]-Fock[b+O+OV,b+O+OV]
+        t2[i,j,a,b]=IJAB[i,j,a,b]/D2[i,j,a,b]
+        t2[i+O,j+O,a+V,b+V] = IJAB[i+O,j+O,a+V,b+V]/D2[i+O,j+O,a+V,b+V]
+        t2[i,j+O,a,b+V]     = IJAB[i,j+O,a,b+V]    /D2[i,j+O,a,b+V]
+        t2[i,j+O,a+V,b]     = IJAB[i,j+O,a+V,b]    /D2[i,j+O,a+V,b]
+        t2[i+O,j,a+V,b]     = IJAB[i+O,j,a+V,b]    /D2[i+O,j,a+V,b]
+        t2[i+O,j,a,b+V]     = IJAB[i+O,j,a,b+V]    /D2[i+O,j,a,b+V]             
+MP2 = 0.25*np.einsum('ijab,ijab',IJAB,t2,optimize=True)
+# print(f"{O},{V},{NB},{Fock[0,0]},{Fock[O,O]},{2*Fock[0,0]-Fock[O,O]}")
+# for i in range(O*2):
+#   for j in range(O*2):
+#     for a in range(V*2):
+#       for b in range(V*2):
+#         print(f"{i+1,j+1,a+1,b+1}: {IJAB[i,j,a,b]},{D2[i,j,a,b]},{t2[i,j,a,b]}")
+#print("t2\n",t2)
+print("MP2",MP2)
+print("guess",np.einsum('ijab,ijab',t2,t2,optimize=True))
+stop
 
 #Equation (13)
 for a in range(V):
   for i in range(O):
-    D1[a,i]=Fock[i,i]-Fock[a+O,a+O]
+    D1[i,a]=Fock[i,i]-Fock[a+O,a+O]
+    D1[i+O,a+V]=Fock[i+OV,i+OV]-Fock[a+O+OV,a+O+OV]
 #Equation (14)
 #for a in range(V):
 #  for b in range(V):

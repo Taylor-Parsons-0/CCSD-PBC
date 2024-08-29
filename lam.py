@@ -7,46 +7,63 @@ import re
 
 #Intermediates Needed for lambda equation solution
 #MAYBE NEED TO SWAP INTERMEDIATE INDICES
-def lamInts(O, NB, Fock, t1, t2, MO, T, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, lam1, lam2):
-  if T==1:
+def lamInts(t2, lam1, lam2):
 #DEFINE G Intermediates
-    G_ae=np.zeros((NB, NB))
-    for a in range(O, NB):
-      for e in range(O, NB):
-        for m in range(O):
-          for n in range(O):
-            for f in range(O, NB):
-              G_ae[a,e]-=(1/2)*t2[e,f,m,n]*lam2[m,n,a,f]
+  G_ae = -0.5 * np.einsum('efmn,mnaf->ae',t2,lam2,optimize=True)
+  # G_ae=np.zeros((NB, NB))
+  # for a in range(O, NB):
+  #   for e in range(O, NB):
+  #     for m in range(O):
+  #       for n in range(O):
+  #         for f in range(O, NB):
+  #           G_ae[a,e]-=(1/2)*t2[e,f,m,n]*lam2[m,n,a,f]
+  G_mi = 0.5 * np.einsum('efmn,inef->mi',t2,lam2,optimize=True)
 
-    G_mi=np.zeros((NB, NB))
+    # G_mi=np.zeros((NB, NB))
+    # for m in range(O):
+    #   for i in range(O):
+    #     for m in range(O):
+    #       for e in range(O, NB):
+    #         for f in range(O, NB):
+    #           G_mi[m,i]+=(1/2)*t2[e,f,m,n]*lam2[i,n,e,f]
+
+  return G_ae, G_mi
+
+def TConst(O, NB, Fock, t1, t2, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej):
+
+  # #DEFINE Double tilde terms
+  # Wtt_iefn=np.zeros((NB, NB, NB, NB))
+  # for i in range(O):
+  #   for e in range(O, NB):
+  #     for f in range(O, NB):
+  #       for n in range(O):
+  #         Wtt_iefn[i,e,f,n]+=MO[i,e,f,n]
+  #         for j in range(O):
+  #           for g in range(O, NB):
+  #             Wtt_iefn[i,e,f,n]-=t2[e,g,j,n]*MO[i,j,f,g]
+  # 
+  #   Wtt_nfam=np.zeros((NB, NB, NB, NB))
+  #   for n in range(O):
+  #     for f in range(O, NB):
+  #       for a in range(O, NB):
+  #         for m in range(O):
+  #           Wtt_nfam+=MO[n,f,a,m]
+  #           for o in range(O):
+  #             for b in range(O, NB):
+  #               Wtt_nfam[n,f,a,m]-=t2[b,f,o,m]*MO[n,o,a,b]
+
+
+#EQ 24 Wtt-mbej
+    Wtt_mbej=np.zeros((NB, NB, NB, NB))
     for m in range(O):
-      for i in range(O):
-        for m in range(O):
-          for e in range(O, NB):
-            for f in range(O, NB):
-              G_mi[m,i]+=(1/2)*t2[e,f,m,n]*lam2[i,n,e,f]
-
-#DEFINE Double tilde terms
-    Wtt_iefn=np.zeros((NB, NB, NB, NB))
-    for i in range(O):
-      for e in range(O, NB):
-        for f in range(O, NB):
-          for n in range(O):
-            Wtt_iefn[i,e,f,n]+=MO[i,e,f,n]
-            for j in range(O):
-              for g in range(O, NB):
-                Wtt_iefn[i,e,f,n]-=t2[e,g,j,n]*MO[i,j,f,g]
-
-    Wtt_nfam=np.zeros((NB, NB, NB, NB))
-    for n in range(O):
-      for f in range(O, NB):
-        for a in range(O, NB):
-          for m in range(O):
-            Wtt_nfam+=MO[n,f,a,m]
-            for o in range(O):
-              for b in range(O, NB):
-                Wtt_nfam[n,f,a,m]-=t2[b,f,o,m]*MO[n,o,a,b]
-
+      for b in range(O, NB):
+        for e in range(O, NB):
+          for j in range(O):
+            Wtt_mbej[m,b,e,j]+=MO[m,b,e,j]
+            for n in range(O):
+              for f in range(O, NB):
+                Wtt_mbej[m,b,e,j]+=t2[b,f,n,j]*MO[m,n,e,f]
+                
 #EQ 17
     Ft_ea=np.zeros((NB,NB))
     for e in range(NB,O):
@@ -61,16 +78,6 @@ def lamInts(O, NB, Fock, t1, t2, MO, T, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij
         Ft_im[i,m]+=F_mi[i,m]
         for e in range(O,NB):
           Ft_im[i,m]-=(1/2)*t1[e,m]*F_me[i,e]
-#EQ 24
-    Wtt_mbej=np.zeros((NB, NB, NB, NB))
-    for m in range(O):
-      for b in range(O, NB):
-        for e in range(O, NB):
-          for j in range(O):
-            Wtt_mbej[m,b,e,j]+=MO[m,b,e,j]
-            for n in range(O):
-              for f in range(O, NB):
-                Wtt_mbej[m,b,e,j]+=t2[b,f,n,j]*MO[m,n,e,f] 
 #EQ 19
     Wt_efab=np.zeros((NB, NB, NB, NB))
     for e in range(O,NB):
