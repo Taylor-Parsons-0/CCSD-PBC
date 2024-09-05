@@ -18,7 +18,6 @@ log=f"{molecule}.log"
 
 #Occupied orbitals
 O, V, NB, scfE, Fock, Coeff=getFort(molecule, log)
-print(f"Info molecule, {O},{V},{NB},{scfE}")
 #Initialize arrays
 coul=np.zeros((NB,NB,NB,NB))
 exc=np.zeros((NB,NB,NB,NB))
@@ -27,44 +26,25 @@ AOInt=np.zeros((NB, NB, NB, NB))
 twoE=np.zeros((NB, NB, NB, NB))
 O2 = O*2
 V2 = V*2
-#NB=NB*2
 IJKL=np.zeros((O2,O2,O2,O2))
 ABCD=np.zeros((V2,V2,V2,V2))
 IABC=np.zeros((O2,V2,V2,V2))
 IJAB=np.zeros((O2,O2,V2,V2))
 IJKA=np.zeros((O2,O2,O2,V2))
 IAJB=np.zeros((O2,V2,O2,V2))
-#IJKL=np.zeros((2*O,2*O,2*O,2*O))
-#ABCD=np.zeros((2*V,2*V,2*V,2*V))
-#IABC=np.zeros((2*O,2*V,2*V,2*V))
-#IJAB=np.zeros((2*O,2*O,2*V,2*V))
-#IJKA=np.zeros((2*O,2*O,2*O,2*V))
-#AIBC=np.zeros((2*V,2*O,2*V,2*V))
-#IABJ=np.zeros((2*O,2*V,2*V,2*O))
-#IJAK=np.zeros((2*O,2*O,2*V,2*O))
-#IAJB=np.zeros((2*O,2*V,2*O,2*V))
-#ABCI=np.zeros((2*V,2*V,2*V,2*O))
-#IAJK=np.zeros((2*O,2*V,2*O,2*O))
-#MO=np.zeros((2*NB, 2*NB, 2*NB, 2*NB))
-delta=np.identity(2*NB)
-#twoE=np.zeros((2*NB, 2*NB, 2*NB, 2*NB))
 
 #Get 2e integrals
 AOInt=get2e(AOInt, log)
 
 #Change to spin orbital form
-IJKL, ABCD, IABC, IJAB, IJKA, IAJB=conMO(O, V, NB, Fock, Coeff, AOInt, IJKL, ABCD, IABC, IJAB, IJKA, IAJB)
+IJKL, ABCD, IABC, IJAB, IJKA, IAJB=conMO(O, V, NB, Coeff, AOInt, IJKL, ABCD, IABC, IJAB, IJKA, IAJB)
 
 #Initialize T1 and T2
-#O=O*2
-#V=V*2
-#NB=NB*2
-# t1=np.zeros((V, O))
-# t2=np.zeros((V, V, O, O))
-#Define Denominator Arrays
-# D1=np.zeros((V, O))
-D2 = np.zeros((O2 O2, V2, V2))
+t1=np.zeros((O2, V2))
 t2 = np.zeros((O2, O2, V2, V2))
+#Define Denominator Arrays
+D1 = np.zeros((O2, V2))
+D2 = np.zeros((O2, O2, V2, V2))
 #Initial T2 Guess
 for i in range(O2):
   for j in range(O2):
@@ -73,98 +53,33 @@ for i in range(O2):
       for b in range(V2):
         D2[i,j,a,b] = den-Fock[a+O2,a+O2]-Fock[b+O2,b+O2]
 t2 = IJAB/D2        
-MP2 = 0.25*np.einsum('ijab,ijab',IJAB,t2,optimize=True)
-OV = O + V
-#for i in range(O):
-#  for j in range(O):
-#    for a in range(V):
-#      for b in range(V):
-#        D2[i,j,a,b]=Fock[i,i]+Fock[j,j]-Fock[a+O,a+O]-Fock[b+O,b+O]
-#        D2[i+O,j+O,a+V,b+V]=Fock[i+OV,i+OV]+Fock[j+OV,j+OV]-Fock[a+O+OV,a+O+OV]-Fock[b+O+OV,b+O+OV]
-#        D2[i,j+O,a,b+V]=Fock[i,i]+Fock[j+OV,j+OV]-Fock[a+O,a+O]-Fock[b+O+OV,b+O+OV]
-#        D2[i,j+O,a+V,b]=Fock[i,i]+Fock[j+OV,j+OV]-Fock[a+O+OV,a+O+OV]-Fock[b+O,b+O]
-#        D2[i+O,j,a+V,b]=Fock[i+OV,i+OV]+Fock[j,j]-Fock[a+O+OV,a+O+OV]-Fock[b+O,b+O]
-#        D2[i+O,j,a,b+V]=Fock[i+OV,i+OV]+Fock[j,j]-Fock[a+O,a+O]-Fock[b+O+OV,b+O+OV]
-#        t2[i,j,a,b]=IJAB[i,j,a,b]/D2[i,j,a,b]
-#        t2[i+O,j+O,a+V,b+V] = IJAB[i+O,j+O,a+V,b+V]/D2[i+O,j+O,a+V,b+V]
-#        t2[i,j+O,a,b+V]     = IJAB[i,j+O,a,b+V]    /D2[i,j+O,a,b+V]
-#        t2[i,j+O,a+V,b]     = IJAB[i,j+O,a+V,b]    /D2[i,j+O,a+V,b]
-#        t2[i+O,j,a+V,b]     = IJAB[i+O,j,a+V,b]    /D2[i+O,j,a+V,b]
-#        t2[i+O,j,a,b+V]     = IJAB[i+O,j,a,b+V]    /D2[i+O,j,a,b+V]             
-MP2 = 0.25*np.einsum('ijab,ijab',IJAB,t2,optimize=True)
-# print(f"{O},{V},{NB},{Fock[0,0]},{Fock[O,O]},{2*Fock[0,0]-Fock[O,O]}")
-# for i in range(O*2):
-#   for j in range(O*2):
-#     for a in range(V*2):
-#       for b in range(V*2):
-#         print(f"{i+1,j+1,a+1,b+1}: {IJAB[i,j,a,b]},{D2[i,j,a,b]},{t2[i,j,a,b]}")
-#print("t2\n",t2)
-print("MP2",MP2)
-print("guess",np.einsum('ijab,ijab',t2,t2,optimize=True))
-stop
-
-#Equation (13)
+# D1 denominator
 for a in range(V2):
   for i in range(O2):
     D1[i,a]=Fock[i,i]-Fock[a+O2,a+O2]
-#    D1[i+O,a+V]=Fock[i+OV,i+OV]-Fock[a+O+OV,a+O+OV]
-#Equation (14)
-#for a in range(V):
-#  for b in range(V):
-#      for j in range(O):
-#        D2[a,b,i,j]=Fock[i,i]+Fock[j,j]-Fock[a+O,a+O]-Fock[b+O,b+O]
-
 
 #CCSD Convergence Loop
 #Iterate until converged
-
 E_Corr2=0
 DiffE=1
-#DiffT1=1
-#DiffT2=1
-#t1RMSE=1
-#t2RMSE=1
 N=0
-
-#tau=tauEq(O, V, t1, t2, 1)#NB, Fock, t1, t2, MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, 1)
-
+MaxIt = 100
 #Clean pervious outputs
 os.system(f"rm {molecule}.txt")
-
 #CCSD T and E Loop
 with open(f"{molecule}.txt","a") as writer:
   writer.write("*******SOLVING CCSD T AMPLITUDE AND ENERGY*******\n___________________________________________________________________\n___________________________________________________________________\n\n")
-while DiffE>1e-9 or DiffT1>1e-7 or DiffT2>1e-7 or t1RMSE>1e-7 or t2RMSE>1e-7:
+while DiffE>1e-9 or DiffT1>1e-7 or DiffT2>1e-7 or t1RMSE>1e-7 or t2RMSE>1e-7 and N< MaxIt:
   E_Corr1=E_Corr2
-#Calculate intermediates
-#  tau_tilde=tau_tildeEq(O, V, t1, t2, 1) #NB, t1, t2, 1)#Fock, t1, t2, #MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, 1)
-#  tau=tauEq(O, V, t1, t2, 1)#NB, Fock, t1, t2, MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, 1)
-#  F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej=intermediateEqs(O, V, NB, Fock, t1, t2, MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, 1, tau_tilde, tau)
-##Do t1 step
-#  t1_f=t1Eq(O, V, NB, Fock, t1, t2, MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, 1, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, D1)
-#  start=time.time()
-##Do t2 step
-#  t2_f=t2Eq(O, V, NB, Fock, t1, t2, MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, 1, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, D2)
-##Check for convergence
-#  DiffT1=abs(np.max(t1_f-t1))
-#  DiffT2=abs(np.max(t2_f-t2))
-#  t1RMSE=(np.sum(((t1_f-t1)**(2))/(np.size(t1))))**(1/2)
-#  t2RMSE=(np.sum(((t2_f-t2)**(2))/(np.size(t2))))**(1/2)
-#  t1=np.copy(t1_f)
-#  t2=np.copy(t2_f)
-#  E_Corr2=CCSD(O, V, NB, Fock, t1, IJAB, 1, tau)#t2, IJAB, 1, tau)#MO, IJKL, ABCD, IABC, IJAB, IJKA, AIBC, IABJ, IJAK, IAJB, ABCI, IAJK, 1, tau)
-#  DiffE=abs(E_Corr2-E_Corr1)
-#  N+=1
-#Calculate intermediates
+  # Calculate intermediates
+  start=time.time()
   tau_tilde = tau_tildeEq(1, O, V, t1, t2)
   tau = tauEq(1, O, V, t1, t2)
-  F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej = intermediateEqs(1, O, V, Fock, t1, t2, IJKL, ABCD, IABC, IJAB, IJKA, tau_tilde, tau)
-  #Do t1 step
+  F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej = intermediateEqs(1, O, V, Fock, t1, t2, IJKL, ABCD, IABC, IJAB, IAJB, IJKA, tau_tilde, tau)
+  # Do t1 step
   t1_f = t1Eq(1, O, Fock, t1, t2, IABC, IJKA, IAJB, F_ae, F_mi, F_me, D1)
-  start=time.time()
-  #Do t2 step
+  # Do t2 step
   t2_f = t2Eq(1, t1, t2, IABC, IJAB, IJKA, IAJB, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, D2)
-#Check for convergence
   DiffT1 = abs(np.max(t1_f-t1))
   DiffT2 = abs(np.max(t2_f-t2))
   t1RMSE = (np.sum(((t1_f-t1)**(2))/(np.size(t1))))**(1/2)
@@ -175,26 +90,9 @@ while DiffE>1e-9 or DiffT1>1e-7 or DiffT2>1e-7 or t1RMSE>1e-7 or t2RMSE>1e-7:
   DiffE = abs(E_Corr2-E_Corr1)
   N +=1
   with open(f"{molecule}.txt","a") as writer:
-    writer.write(f"Iteration {N}: CCSD {E_Corr2}\n")
-    writer.write(f"Total Energy: {scfE+E_Corr2}\n")
+    writer.write(f"Iteration {N}: E_corr(CCSD) {E_Corr2}, ")
+    writer.write(f"E(CCSD): {scfE+E_Corr2}, ")
     writer.write(f"Time: {time.time()-start}\n")
-#  shape=np.shape(t2)
-#  with open("ijab.txt","a") as writer:
-#    writer.write(f"Iteration {N}\n---------------------------------------------------\n")
-#    for i in range(O):
-#      for j in range(O):
-#        for a in range(V):
-#          for b in range(V):
-#            if IJAB[i,j,a,b]>1e-6:
-#              writer.write(f"ijab({i+1, j+1, a+1, b+1}): {IJAB[i,j,a,b]}\n")
-#  with open("t2s.txt","a") as writer:
-#    writer.write(f"Iteration {N}\n---------------------------------------------------\n")
-#    for i in range(shape[0]):
-#      for j in range(shape[1]):
-#        for k in range(shape[2]):
-#          for l in range(shape[3]):
-#            if t2[i,j,k,l]>1e-6:
-#              writer.write(f"t2({i+1,j+1,k+1,l+1}): {t2[i,j,k,l]}\n\n")
 DiffL1=1
 DiffL2=1
 lam1RMSE=1
@@ -254,13 +152,13 @@ shape=np.shape(t2)
 #  
 
 #Initialize Z1 and Z2
-Z1=np.zeros((NB, NB))
-Z2=np.zeros((NB, NB, NB, NB))
-W_ia=np.zeros((NB, NB))
-W_ijab=np.zeros((NB, NB, NB, NB))
-
-Z1RMSE=1
-Z2RMSE=2
+# Z1=np.zeros((NB, NB))
+# Z2=np.zeros((NB, NB, NB, NB))
+# W_ia=np.zeros((NB, NB))
+# W_ijab=np.zeros((NB, NB, NB, NB))
+# 
+# Z1RMSE=1
+# Z2RMSE=2
 #CCSD Lambda Equations from l930
 #with open("Z_out.txt","a") as writer:
 #  writer.write("\n\n\n\n*******SOLVING CCSD LAMBDA AMPLITUDE*******\n___________________________________________________________________\n___________________________________________________________________\n\n")
