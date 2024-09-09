@@ -30,14 +30,11 @@ def getFort(molecule, log):
       ind +=1 
   NB=O+V
 #SCF Energy
-  # os.system(f"grep -i 'scf done' {log} > scf.txt")
   with open(f"{mol}_txts/scf.txt","r") as reader:
     text=[]
     for line in reader:
       text.append(line.split())
- 
-  scfE=float(text[0][4])
-  # os.system("rm scf.txt")
+  scfE=float(text[0][0])
 #Fock
   OE=[]
   with open(f"{mol}_txts/orb.txt","r") as reader:

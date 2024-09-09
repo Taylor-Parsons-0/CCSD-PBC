@@ -42,7 +42,7 @@ IJKL, ABCD, IABC, IJAB, IJKA, IAJB=conMO(O, V, NB, Coeff, AOInt, IJKL, ABCD, IAB
 #Initialize T1 and T2
 t1=np.zeros((O2, V2))
 t2 = np.zeros((O2, O2, V2, V2))
-#Define Denominator Arrays
+#Define Denominator Arrays and compute E(SCF)
 D1 = np.zeros((O2, V2))
 D2 = np.zeros((O2, O2, V2, V2))
 #Initial T2 Guess
@@ -52,7 +52,7 @@ for i in range(O2):
     for a in range(V2):
       for b in range(V2):
         D2[i,j,a,b] = den-Fock[a+O2,a+O2]-Fock[b+O2,b+O2]
-t2 = IJAB/D2        
+t2 = IJAB/D2
 # D1 denominator
 for a in range(V2):
   for i in range(O2):
