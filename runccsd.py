@@ -4,7 +4,7 @@ import sys
 import re
 import time
 from read import getFort, get2e, conMO
-from ein_ccsdAmps import tau_tildeEq, tauEq, intermediateEqs, t1Eq, t2Eq, E_CCSD 
+from ein_ccsdAmps import tau_tildeEq, tauEq, intermediateEqs, t1Eq, t2Eq, E_CCSD, L_intermediate, L_intermediate_const, l1Eq, l2Eq 
 #from lam import lamInts, lam1Eq, lam2Eq 
 #from lam_l930 import zInts, Z1eq, Z2eq, Zeq 
 
@@ -15,6 +15,8 @@ else:
   print("MISSING MOLECULE NAME")
   exit()
 log=f"{molecule}.log"
+#Clean pervious outputs
+os.system(f"rm {molecule}.txt")
 
 #Occupied orbitals
 O, V, NB, scfE, Fock, Coeff=getFort(molecule, log)
@@ -34,12 +36,19 @@ IJKA=np.zeros((O2,O2,O2,V2))
 IAJB=np.zeros((O2,V2,O2,V2))
 
 #Get 2e integrals
+start=time.time()
 AOInt=get2e(AOInt, log)
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Read 2ERI, Time: {time.time()-start}\n")
 
 #Change to spin orbital form
+start=time.time()
 IJKL, ABCD, IABC, IJAB, IJKA, IAJB=conMO(O, V, NB, Coeff, AOInt, IJKL, ABCD, IABC, IJAB, IJKA, IAJB)
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"2ERI AO->MO, Time: {time.time()-start}\n")
 
 #Initialize T1 and T2
+start=time.time()
 t1=np.zeros((O2, V2))
 t2 = np.zeros((O2, O2, V2, V2))
 #Define Denominator Arrays and compute E(SCF)
@@ -57,18 +66,23 @@ t2 = IJAB/D2
 for a in range(V2):
   for i in range(O2):
     D1[i,a]=Fock[i,i]-Fock[a+O2,a+O2]
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Compute energy denominators, Time: {time.time()-start}\n")
 
 #CCSD Convergence Loop
 #Iterate until converged
 E_Corr2=0
 DiffE=1
+DiffT1=1
+DiffT2=1
+t1RMSE=1
+t2RMSE=1
 N=0
 MaxIt = 100
-#Clean pervious outputs
-os.system(f"rm {molecule}.txt")
 #CCSD T and E Loop
+start0=time.time()
 with open(f"{molecule}.txt","a") as writer:
-  writer.write("*******SOLVING CCSD T AMPLITUDE AND ENERGY*******\n___________________________________________________________________\n___________________________________________________________________\n\n")
+  writer.write("___________________________________________________________________\n\n*******SOLVING CCSD T AMPLITUDE AND ENERGY EQS.*******\n___________________________________________________________________\n\n")
 while DiffE>1e-9 or DiffT1>1e-7 or DiffT2>1e-7 or t1RMSE>1e-7 or t2RMSE>1e-7 and N< MaxIt:
   E_Corr1=E_Corr2
   # Calculate intermediates
@@ -78,8 +92,10 @@ while DiffE>1e-9 or DiffT1>1e-7 or DiffT2>1e-7 or t1RMSE>1e-7 or t2RMSE>1e-7 and
   F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej = intermediateEqs(1, O, V, Fock, t1, t2, IJKL, ABCD, IABC, IJAB, IAJB, IJKA, tau_tilde, tau)
   # Do t1 step
   t1_f = t1Eq(1, O, Fock, t1, t2, IABC, IJKA, IAJB, F_ae, F_mi, F_me, D1)
+  # t1_f = np.zeros((O2, V2))
   # Do t2 step
   t2_f = t2Eq(1, t1, t2, IABC, IJAB, IJKA, IAJB, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, D2)
+  # t2_f = IJAB/D2
   DiffT1 = abs(np.max(t1_f-t1))
   DiffT2 = abs(np.max(t2_f-t2))
   t1RMSE = (np.sum(((t1_f-t1)**(2))/(np.size(t1))))**(1/2)
@@ -93,6 +109,8 @@ while DiffE>1e-9 or DiffT1>1e-7 or DiffT2>1e-7 or t1RMSE>1e-7 or t2RMSE>1e-7 and
     writer.write(f"Iteration {N}: E_corr(CCSD) {E_Corr2}, ")
     writer.write(f"E(CCSD): {scfE+E_Corr2}, ")
     writer.write(f"Time: {time.time()-start}\n")
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Total Time: {time.time()-start0}\n")
 DiffL1=1
 DiffL2=1
 lam1RMSE=1
@@ -101,114 +119,63 @@ N=0
 
 shape=np.shape(t2)
 
-#with open("t2s.txt","w") as writer:
-#  for i in range(shape[0]):
-#    for j in range(shape[1]):
-#      for k in range(shape[2]):
-#        for l in range(shape[3]):
-#          if t2[i,j,k,l]>1e-6:
-#            writer.write(f"t2({i,j,k,l}): {t2[i,j,k,l]}\n\n")
-
-#CCSD Lambda and Energy Grad Loop
-#with open("out.txt","a") as writer:
-#  writer.write("\n\n\n\n*******SOLVING CCSD LAMBDA AMPLITUDE*******\n___________________________________________________________________\n___________________________________________________________________\n\n")
-#while DiffL1>0.00000001 or DiffL2>0.00000001 or lam1RMSE>0.0000000001 or lam2RMSE>0.0000000001:
-#  if N==0:
-#    lam1=np.zeros((NB, NB))
-#    lam2=np.zeros((NB, NB, NB, NB))
-#  G_ae, G_mi, Wtt_mbej, Ft_ea, Ft_im, Wt_efab, Wt_ijmn, Wt_ejmb, Wt_iemn, Wt_mnie, Wt_efam=lamInts(O, NB, Fock, t1, t2, MO, 1, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, lam1, lam2)
-#  lam1_f=lam1Eq(O, NB, Fock, t1, t2, MO, 1, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, G_ae, G_mi, Wtt_mbej, Ft_ea, Ft_im, Wt_efab, Wt_ijmn, Wt_ejmb, Wt_iemn, Wt_mnie, Wt_efam, D1, lam1, lam2)
-#  lam2_f=lam2Eq(O, NB, Fock, t1, t2, MO, 1, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, G_ae, G_mi, Wtt_mbej, Ft_ea, Ft_im, Wt_efab, Wt_ijmn, Wt_ejmb, Wt_iemn, Wt_mnie, Wt_efam, D2, lam1, lam2)
-#  DiffL1=abs(np.max(lam1_f-lam1))
-#  DiffL2=abs(np.max(lam2_f-lam2))
-#  lam1RMSE=(np.sum(((lam1_f-lam1)**(2))/(np.size(lam1))))**(1/2)
-#  lam2RMSE=(np.sum(((lam2_f-lam2)**(2))/(np.size(lam2))))**(1/2)
-#  lam1=np.copy(lam1_f)
-#  lam2=np.copy(lam2_f)
-#  N+=1
-#  print(f"Iteration {N}\n")
-#  print(f"Time: {time.time()-start}")
-#  print(f"lambda_1 RMSE: {lam1RMSE}")
-#  print(f"lambda_2 RMSE: {lam2RMSE}")
-#  with open("out.txt","a") as writer:
-#    writer.write(f"Iteration {N}\n")
-#    writer.write(f"Time: {time.time()-start}\n")
-##CHECK AMPLITUDES
-#with open("lam_amps.txt","a") as writer:
-#  writer.write("SINGLES\n__________________________________________\n")
-#  for p in range(len(lam1)):
-#    for q in range(len(lam1)):
-#      if abs(lam1[p,q])>1e-6:
-#        one=f"{lam1[p,q], (p,q)}\n"
-#        writer.write(one)
-#  writer.write("\n\n________________________________________\nDOUBLES\n")
-#  for p in range(len(lam2)):
-#    for q in range(len(lam2)):
-#      for r in range(len(lam2)):
-#        for s in range(len(lam2)):
-#          if abs(lam2[p,q,r,s])>1e-6:
-#            two=f"{lam2[p,q,r,s], (p,q,r,s)}\n"
-#            writer.write(two)
-#  
-
-#Initialize Z1 and Z2
-# Z1=np.zeros((NB, NB))
-# Z2=np.zeros((NB, NB, NB, NB))
-# W_ia=np.zeros((NB, NB))
-# W_ijab=np.zeros((NB, NB, NB, NB))
-# 
-# Z1RMSE=1
-# Z2RMSE=2
-#CCSD Lambda Equations from l930
-#with open("Z_out.txt","a") as writer:
-#  writer.write("\n\n\n\n*******SOLVING CCSD LAMBDA AMPLITUDE*******\n___________________________________________________________________\n___________________________________________________________________\n\n")
-#while Z1RMSE>0.0000000001 or Z2RMSE>0.0000000001:
-##  if N==0:
-##    W_ia=np.zeros((NB, NB))
-##    Z1=np.zeros((NB, NB))
-##    W_ijab=np.zeros((NB, NB, NB, NB))
-##    Z2=np.zeros((NB, NB, NB, NB))
-#
-#  G_ij, G_ab, H_il, H_ijkl, H_ad, Y_jkbc, S_ijkl, Z_bc, T_jk, W_cdaj=zInts(O, NB, Fock, t1, t2, MO, 1, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, D1, D2, W_ia, W_ijab, Z1, Z2)   
-#  W1=Z1eq(O, NB, Fock, t1, t2, MO, 1, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, W_ia, W_ijab, D1, D2, G_ij, G_ab, H_il, H_ijkl, H_ad, Y_jkbc, S_ijkl, Z_bc, T_jk, W_cdaj, Z1, Z2)
-#  W2=Z2eq(O, NB, Fock, t1, t2, MO, 1, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, W_ia, W_ijab, D1, D2, G_ij, G_ab, H_il, H_ijkl, H_ad, Y_jkbc, S_ijkl, Z_bc, T_jk, W_cdaj, Z1, Z2)
-#  Z_ia, Z_ijab=Zeq(O, NB, Fock, t1, t2, MO, 1, tau_tilde, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, W1, W2, D1, D2, G_ij, G_ab, H_il, H_ijkl, H_ad, Y_jkbc, S_ijkl, Z_bc, T_jk, W_cdaj, Z1, Z2)
-#  
-#  for i in range(O):
-#    for j in range(O):
-#      for a in range(O, NB):
-#        for b in range(O, NB):
-#          if abs(W1[i,a])>1e-16:
-#            print(f"{(i,a), Z_ia[i,a]}")
-#          if abs(W2[i,j,a,b])>1e-16:
-#            print(f"{(i,j,a,b), Z_ijab[i,j,a,b]}")
-#
-#  Z1RMSE=(np.sum(((Z_ia-Z1)**(2))/(np.size(Z1))))**(1/2)
-#  Z2RMSE=(np.sum(((Z_ijab-Z2)**(2))/(np.size(Z2))))**(1/2)
-#  
-#  W_ia=np.copy(W1)
-#  W_ijab=np.copy(W2)
-#  Z1=np.copy(Z_ia)
-#  Z2=np.copy(Z_ijab)
-#  N+=1
-#  print(f"Iteration {N}\n")
-#  print(f"Time: {time.time()-start}")
-#  print(f"lambda_1 RMSE: {Z1RMSE}")
-#  print(f"lambda_2 RMSE: {Z2RMSE}")
-#
-##Check scalar products of arrays
-#def scalp(X):
-#  Xf=np.ndarray.flatten(X)
-#  val=np.dot(Xf,Xf)
-#  return val
-#
-#print(f"Scalar product of G_ij: {scalp(G_ij)}\n")
-#print(f"Scalar product of G_ab: {scalp(G_ab)}")
-#print(f"Scalar product of H_il: {scalp(H_il)}")
-#print(f"Scalar product of H_ijkl: {scalp(H_ijkl)}")
-#print(f"Scalar product of H_ad: {scalp(H_ad)}")
-#print(f"Scalar product of Y_jkbc: {scalp(Y_jkbc)}")
-#print(f"Scalar product of S_ijkl: {scalp(S_ijkl)}")
-#print(f"Scalar product of Z_bc: {scalp(Z_bc)}")
-#print(f"Scalar product of T_jk: {scalp(T_jk)}")
-#print(f"Scalar product of W_cdaj: {scalp(W_cdaj)}")
+#CCSD Lambda equations loop
+#Iterate until converged
+EL_Corr2=0
+DiffE=1
+DiffT1=1
+DiffT2=1
+t1RMSE=1
+t2RMSE=1
+l1 = np.zeros((O2, V2))
+l2 = np.zeros((O2, O2, V2, V2))
+l1 = np.copy(t1)
+l2 = np.copy(t2)
+N=0
+#CCSD Lambda Loop
+with open(f"{molecule}.txt","a") as writer:
+  writer.write("\n\n___________________________________________________________________\n\n*******SOLVING CCSD Lambda AMPLITUDE EQS.*******\n___________________________________________________________________\n\n")
+# Compute constant intermediates
+start=time.time()
+tau_tilde = tau_tildeEq(1, O, V, t1, t2)
+tau = tauEq(1,O,V,t1,t2)
+F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej = intermediateEqs(1, O, V, Fock, t1, t2, IJKL, ABCD, IABC, IJAB, IAJB, IJKA, tau_tilde, tau)
+W_efam, W_iemn = L_intermediate_const(1,t1,t2,tau,IJAB,IAJB,IJKA,IABC,F_ae,F_mi,F_me,W_mnij,W_abef,W_mbej)
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Compute constant intermediates, Time: {time.time()-start}\n")
+# Loop
+start0=time.time()
+while DiffE>1e-9 or DiffT1>1e-7 or DiffT2>1e-7 or t1RMSE>1e-7 or t2RMSE>1e-7 and N< MaxIt:
+  EL_Corr1 = EL_Corr2
+  # Calculate intermediates
+  start=time.time()
+  G_ae, G_mi = L_intermediate(1,t2,l2)
+  # Do l1 step
+  l1_f = l1Eq(1,t1,l1,l2,IJAB,IABC,IJKA,W_efam,W_iemn,W_mbej,F_ae,F_mi,F_me,G_ae,G_mi,D1)
+  # l1_f = np.zeros((O2, V2))
+  # Do l2 step
+  l2_f = l2Eq(1,t1,l1,l2,IABC,IJAB,IJKA,F_ae,F_mi,F_me,G_ae,G_mi,W_mnij,W_abef,W_mbej,D2)
+  # l2_f = IJAB/D2
+  DiffT1 = abs(np.max(l1_f-l1))
+  DiffT2 = abs(np.max(l2_f-l2))
+  t1RMSE = (np.sum(((l1_f-l1)**(2))/(np.size(l1))))**(1/2)
+  t2RMSE = (np.sum(((l2_f-l2)**(2))/(np.size(l2))))**(1/2)
+  l1 = np.copy(l1_f)
+  l2 = np.copy(l2_f)
+  # Compute the a fake tau to check the energy, consistently with
+  # Gaussian, but let's use the tau_tilde array.
+  tau_tilde = tauEq(1, O, V, l1, l2)
+  EL_Corr2 = E_CCSD(O,Fock,l1,IJAB,tau_tilde)
+  DiffE = abs(EL_Corr2-EL_Corr1)
+  N +=1
+  with open(f"{molecule}.txt","a") as writer:
+    writer.write(f"Iteration {N}: DE(L-CCSD) {EL_Corr2}, ")
+    writer.write(f"E(L-CCSD): {scfE+EL_Corr2}, ")
+    writer.write(f"Time: {time.time()-start}\n")
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Total Time: {time.time()-start0}\n")
+DiffL1=1
+DiffL2=1
+lam1RMSE=1
+lam2RMSE=1
+N=0

@@ -59,7 +59,7 @@ def intermediateEqs(T, O, V, Fock, t1, t2, IJKL, ABCD, IABC, IJAB, IAJB, IJKA, t
     W_mnij = np.copy(IJKL)
     W_mnij += np.einsum('je,mnie->mnij', t1, IJKA, optimize=True)
     W_mnij -= np.einsum('ie,mnje->mnij', t1, IJKA, optimize=True)
-    W_mnij += 0.5 * np.einsum('ijef,mnef->mnij', tau, IJAB, optimize=True)
+    W_mnij += 0.5 * np.einsum('mnef,ijef->mnij', IJAB, tau, optimize=True)
     # W_abef
     W_abef =np.copy(ABCD)
     W_abef += np.einsum('mb,maef->abef',t1,IABC,optimize=True)
@@ -122,3 +122,80 @@ def E_CCSD(O, Fock, t1, IJAB, tau):
   E_Corr2 = E_Corr2_1 + E_Corr2_2
   
   return E_Corr2
+
+###########################################################################
+def L_intermediate_const(T, t1, t2, tau, IJAB, IAJB, IJKA, IABC, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej):
+  # Define constant intermediates for CCSD Lambda equations
+  if T==1:
+    # Remember that the contraction for Lambda is over the opposite one or two indices (same for W_mnij)
+    F_ae -= 0.5*np.einsum('ma,me->ae',t1,F_me,optimize=True)
+    # The sign of this terms is wrong in the paper
+    F_mi += 0.5*np.einsum('me,ie->mi',F_me,t1,optimize=True)
+    # Here we are forming the tilde-W_abef intermediate as in the
+    # paper, at the cost of doing a o2v4 contraction once. The
+    # tilde-W_nmij is already as in the paper, as we already doubled
+    # the IJAB contribution for the t2 equations.
+    W_abef += 0.5*np.einsum('mnab,mnef->abef',tau,IJAB,optimize=True)
+    W_mbej += 0.5*np.einsum('nmfe,jnbf->mbej',IJAB,t2,optimize=True)
+    # These intermediates are new
+    #MC check the sign of the IABC transposition
+    W_efam = -np.transpose(IABC,axes=(2,3,1,0)) + np.einsum('mnef,na->efam',t2,F_me,optimize=True) + np.einsum('efag,mg->efam',W_abef,t1,optimize=True) - 0.5*np.einsum('noef,noma->efam',tau,IJKA,optimize=True)
+    W_iemn = np.transpose(IJKA,axes=(2,3,0,1)) - np.einsum('mnef,if->iemn',t2,F_me,optimize=True) - np.einsum('iomn,oe->iemn',W_mnij,t1,optimize=True) + 0.5*np.einsum('iefg,mnfg->iemn',IABC,tau,optimize=True)
+    # Create a temp intermediates
+    WW_mbej = -np.transpose(IAJB,axes=(0,1,3,2)) - np.einsum('mnef,njbf->mbej',IJAB,t2,optimize=True) 
+    X1 = - np.einsum('ne,nfam->efam',t1,WW_mbej,optimize=True) + np.einsum('nega,mnfg->efam',IABC,t2,optimize=True)
+    X2 = X1 - np.transpose(X1,axes=(1,0,2,3))
+    W_efam += X2
+    del X1,X2
+    X1 = np.einsum('mf,iefn->iemn',t1,WW_mbej,optimize=True) + np.einsum('iomf,noef->iemn',IJKA,t2,optimize=True)
+    X2 = X1 - np.transpose(X1,axes=(0,1,3,2))
+    W_iemn += X2
+    del X1,X2,WW_mbej
+    # Done and return
+  return W_efam, W_iemn
+
+###########################################################################
+def L_intermediate(T, t2, l2):
+  # Define intermediates for CCSD Lambda equations
+  if T==1:
+    G_ae = -0.5*np.einsum('mnaf,mnef->ae',l2,t2,optimize=True)
+    G_mi = 0.5*np.einsum('mnef,inef->mi',t2,l2,optimize=True)
+  return G_ae, G_mi
+
+###########################################################################
+def l1Eq(T, t1, l1, l2, IJAB, IABC, IJKA, W_efam, W_iemn, W_mbej, F_ae, F_mi, F_me, G_ae, G_mi, D1):
+  # CCSD Lambda1 amplitude equation
+  if T==1:
+    l1_f = np.copy(F_me)  
+    l1_f += np.einsum('ie,ea->ia',l1,F_ae,optimize=True) - np.einsum('im,ma->ia',F_mi,l1,optimize=True) + np.einsum('me,ieam->ia',l1,W_mbej,optimize=True)
+    l1_f += 0.5*np.einsum('imef,efam->ia',l2,W_efam,optimize=True) - 0.5*np.einsum('iemn,mnae->ia',W_iemn,l2,optimize=True)
+    l1_f += np.einsum('ef,iefa->ia',G_ae,IABC,optimize=True) - np.einsum('mn,mina->ia',G_mi,IJKA,optimize=True)
+    X1 = np.einsum('mf,fe->me',t1,G_ae,optimize=True) - np.einsum('mn,ne->me',G_mi,t1,optimize=True)
+    l1_f += np.einsum('me,imae->ia',X1,IJAB,optimize=True)
+    del X1
+    l1_f /= D1
+  return l1_f
+
+###########################################################################
+def l2Eq(T, t1, l1, l2, IABC, IJAB, IJKA, F_ae, F_mi, F_me, G_ae, G_mi, W_mnij, W_abef, W_mbej, D2):
+  if T==1:
+  # CCSD Lambda2 amplitude equation
+    l2_f = np.copy(IJAB)
+    l2_f += 0.5*np.einsum('ijef,efab->ijab',l2,W_abef,optimize=True) + 0.5*np.einsum('ijmn,mnab->ijab',W_mnij,l2,optimize=True)
+    # P(ab) terms
+    X1 = G_ae - np.einsum('mb,me->be',l1,t1,optimize=True)
+    X2 = np.einsum('ijae,be->ijab',IJAB,X1,optimize=True) - np.einsum('ma,ijmb->ijab',l1,IJKA,optimize=True) + np.einsum('ijae,eb->ijab',l2,F_ae,optimize=True) 
+    l2_f += X2 - np.transpose(X2,axes=(0,1,3,2))
+    del X1, X2
+    # P(ij) terms
+    X1 = G_mi + np.einsum('me,je->mj',t1,l1,optimize=True)
+    X2 = np.einsum('imab,mj->ijab',IJAB,X1,optimize=True) + np.einsum('ie,jeab->ijab',l1,IABC,optimize=True) + np.einsum('imab,jm->ijab',l2,F_mi,optimize=True) 
+    l2_f += np.transpose(X2,axes=(1,0,2,3)) - X2 
+    del X1, X2
+    # P(ij,ab) terms
+    X2 = np.einsum('imae,jebm->ijab',l2,W_mbej,optimize=True) + np.einsum('ia,jb->ijab',l1,F_me,optimize=True)
+    l2_f += X2 - np.transpose(X2,axes=(1,0,2,3)) - np.transpose(X2,axes=(0,1,3,2))  + np.transpose(X2,axes=(1,0,3,2))
+    del X2
+    # Divide by energy denominator
+    l2_f /= D2    
+  return l2_f

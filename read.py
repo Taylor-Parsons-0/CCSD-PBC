@@ -3,6 +3,9 @@ import os
 import sys
 import re
 import time
+# import readgau
+# from readgau import orb
+
 
 ##########################################################################
 #Get O, NB, SCF energy, MO coefficients, Orbital energies ################
@@ -41,7 +44,14 @@ def getFort(molecule, log):
     text=[]
     for line in reader:
       text.append(line.split())
-  del text[0]
+  # Remove parentheses
+  for i in range(len(text)):
+    for j in range(len(text[i])):
+      text[i][j] = text[i][j].replace("[","")
+      text[i][j] = text[i][j].replace("]","")
+  # Remove empty slots
+  for i in range(len(text)):
+    text[i][:] = [x for x in text[i] if x]
   for i in range(len(text)):
     for j in range(len(text[i])):
       OE.append(float(text[i][j]))
@@ -59,20 +69,36 @@ def getFort(molecule, log):
     text=[]
     for line in reader:
       text.append(line.split())
-  del text[0]
-  bad=[]
+  # Remove parentheses
   for i in range(len(text)):
-    n=0
     for j in range(len(text[i])):
-      if "D" not in text[i][j]:
-        n+=1
-    if n==len(text[i]):
-      bad.append(i)
+      text[i][j] = text[i][j].replace("[","")
+      text[i][j] = text[i][j].replace("]","")
+  # Remove empty slots
   for i in range(len(text)):
-    if i not in bad:
-      for j in range(len(text[i])-1):
-        Coeff[int(text[i][0])-1].append(float(text[i][j+1].replace("D","E")))
-  Coeff=np.transpose(np.array(Coeff))
+    text[i][:] = [x for x in text[i] if x]
+  ind = 0
+  Coeff=np.zeros((NB,NB))
+  for i in range(len(text)):
+    for j in range(len(text[i])):
+      ind1 = ind%NB
+      ind2 = ind//NB
+      ind += 1
+      Coeff[ind2,ind1] = float(text[i][j])
+  Coeff = np.array(Coeff)
+  # bad=[]
+  # for i in range(len(text)):
+  #   n=0
+  #   for j in range(len(text[i])):
+  #     if "D" not in text[i][j]:
+  #       n+=1
+  #   if n==len(text[i]):
+  #     bad.append(i)
+  # for i in range(len(text)):
+  #   if i not in bad:
+  #     for j in range(len(text[i])-1):
+  #       Coeff[int(text[i][0])-1].append(float(text[i][j+1].replace("D","E")))
+  # Coeff=np.transpose(np.array(Coeff))
 #  
   return O, V, NB, scfE, Fock, Coeff
 
