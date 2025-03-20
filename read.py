@@ -13,7 +13,7 @@ import time
 
 def getFort(molecule, log):
   mol=sys.argv[1]
-#O, V, NB
+  #O, V, NB
   O=0
   V=0
   orbs=[]
@@ -32,13 +32,13 @@ def getFort(molecule, log):
         V+=1 
       ind +=1 
   NB=O+V
-#SCF Energy
+  #SCF Energy
   with open(f"{mol}_txts/scf.txt","r") as reader:
     text=[]
     for line in reader:
       text.append(line.split())
   scfE=float(text[0][0])
-#Fock
+  #Fock
   OE=[]
   with open(f"{mol}_txts/orb.txt","r") as reader:
     text=[]
@@ -63,7 +63,7 @@ def getFort(molecule, log):
   FockD[2*O+V:] = OE[O:NB] 
   Fock=np.zeros((NB*2,NB*2))
   Fock=np.diag(FockD)
-
+  #MO Coefficients
   Coeff=[[] for _ in range(NB)]
   with open(f"{mol}_txts/mocoef.txt","r") as reader:
     text=[]
@@ -99,6 +99,7 @@ def getFort(molecule, log):
   #     for j in range(len(text[i])-1):
   #       Coeff[int(text[i][0])-1].append(float(text[i][j+1].replace("D","E")))
   # Coeff=np.transpose(np.array(Coeff))
+  #Dipole integrals length gauge
 #  
   return O, V, NB, scfE, Fock, Coeff
 
@@ -216,3 +217,64 @@ def conMO(O, V, NB, Coeff, AOInt, IJKL, ABCD, IABC, IJAB, IJKA, IAJB):
           IAJB[i,a+V,j+O,b] = MO[i,a+O+NB,j+NB,b+O]
   del MO, AOInt, twoE, temp, temp2
   return IJKL, ABCD, IABC, IJAB, IJKA, IAJB
+
+#########################################################
+# Get perturbation integrals and return them in MO basis
+#########################################################
+def getpert(O, V, NB, Coeff, pert_type, mol):
+  # print(f"{mol}_txts/dipole_r.txt and {pert_type}")
+  with open(f"{mol}.txt","a") as writer:
+    writer.write(f"Reading perturbation {pert_type}\n")
+  if(pert_type == "DipE"):
+    if(f"{mol}_txts/dipole_r.txt"):
+      with open(f"{mol}_txts/dipole_r.txt","r") as reader:
+        text=[]
+        for line in reader:
+          text.append(line.split())
+      # Remove parentheses
+      for i in range(len(text)):
+        for j in range(len(text[i])):
+          text[i][j] = text[i][j].replace("[","")
+          text[i][j] = text[i][j].replace("]","")
+      # Remove empty slots
+      for i in range(len(text)):
+        text[i][:] = [x for x in text[i] if x]
+      ind = 0
+      AOPert=np.zeros((3*NB*NB))
+      for i in range(len(text)):
+        for j in range(len(text[i])):
+          AOPert[ind] = float(text[i][j])
+          ind += 1
+      NP = 3
+      AOPert = AOPert.reshape(NP,NB,NB)
+    else:
+      print(f" No electric dipole integrals found\n")
+      exit()
+  else:
+    print(f" Perturbation ",pert_type," is not available")
+    exit()
+  # print (f"AOPert\n",AOPert)
+  temp = np.einsum('im,kml,jl->kij',Coeff,AOPert,Coeff,optimize=True)
+  O2 = 2*O
+  V2 = 2*V
+  X_ij = np.zeros((NP,O2,O2))
+  X_ia = np.zeros((NP,O2,V2))
+  X_ab = np.zeros((NP,V2,V2))
+  for n in range(NP):
+    for i in range(O):
+      for j in range(O):
+        X_ij[n,i,j] = temp[n,i,j]
+        X_ij[n,i+O,j+O] = temp[n,i,j]
+    for i in range(O):
+      for a in range(V):
+        X_ia[n,i,a] = temp[n,i,a+O]
+        X_ia[n,i+O,a+V] = temp[n,i,a+O]
+    for a in range(V):
+      for b in range(V):
+        X_ab[n,a,b] = temp[n,a+O,b+O]
+        X_ab[n,a+V,b+V] = temp[n,a+O,b+O]
+  del temp, AOPert
+  # with open(f"{mol}.txt","a") as writer:
+  #   writer.write(f"MOPert\n {MOPert}\n")
+  # print (f"MOPert\n",MOPert)
+  return NP, X_ij, X_ia, X_ab

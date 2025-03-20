@@ -3,8 +3,8 @@ import os
 import sys
 import re
 import time
-from read import getFort, get2e, conMO
-from ein_ccsdAmps import tau_tildeEq, tauEq, intermediateEqs, t1Eq, t2Eq, E_CCSD, L_intermediate, L_intermediate_const, l1Eq, l2Eq 
+from read import getFort, get2e, conMO, getpert
+from ein_ccsdAmps import denom, AmpIt, tau_tildeEq, tauEq, intermediateEqs, t1Eq, t2Eq, E_CCSD, L_intermediate, L_intermediate_const, l1Eq, l2Eq, pert_rhs, tx1Eq, tx2Eq, Xi, TrDen1
 #from lam import lamInts, lam1Eq, lam2Eq 
 #from lam_l930 import zInts, Z1eq, Z2eq, Zeq 
 
@@ -28,6 +28,7 @@ AOInt=np.zeros((NB, NB, NB, NB))
 twoE=np.zeros((NB, NB, NB, NB))
 O2 = O*2
 V2 = V*2
+NB2 = NB*2
 IJKL=np.zeros((O2,O2,O2,O2))
 ABCD=np.zeros((V2,V2,V2,V2))
 IABC=np.zeros((O2,V2,V2,V2))
@@ -35,147 +36,158 @@ IJAB=np.zeros((O2,O2,V2,V2))
 IJKA=np.zeros((O2,O2,O2,V2))
 IAJB=np.zeros((O2,V2,O2,V2))
 
-#Get 2e integrals
+##########################################################################  
+# Get AO 2e integrals and transform in MO basis
+##########################################################################  
 start=time.time()
 AOInt=get2e(AOInt, log)
 with open(f"{molecule}.txt","a") as writer:
-  writer.write(f"Read 2ERI, Time: {time.time()-start}\n")
-
+  writer.write(f"Read 2ERI, Time: {time.time()-start:.2f}s\n")
 #Change to spin orbital form
 start=time.time()
 IJKL, ABCD, IABC, IJAB, IJKA, IAJB=conMO(O, V, NB, Coeff, AOInt, IJKL, ABCD, IABC, IJAB, IJKA, IAJB)
 with open(f"{molecule}.txt","a") as writer:
-  writer.write(f"2ERI AO->MO, Time: {time.time()-start}\n")
+  writer.write(f"2ERI AO->MO, Time: {time.time()-start:.2f}s\n")
 
-#Initialize T1 and T2
 start=time.time()
-t1=np.zeros((O2, V2))
-t2 = np.zeros((O2, O2, V2, V2))
-#Define Denominator Arrays and compute E(SCF)
-D1 = np.zeros((O2, V2))
-D2 = np.zeros((O2, O2, V2, V2))
-#Initial T2 Guess
-for i in range(O2):
-  for j in range(O2):
-    den = Fock[i,i]+Fock[j,j]
-    for a in range(V2):
-      for b in range(V2):
-        D2[i,j,a,b] = den-Fock[a+O2,a+O2]-Fock[b+O2,b+O2]
-t2 = IJAB/D2
-# D1 denominator
-for a in range(V2):
-  for i in range(O2):
-    D1[i,a]=Fock[i,i]-Fock[a+O2,a+O2]
-with open(f"{molecule}.txt","a") as writer:
-  writer.write(f"Compute energy denominators, Time: {time.time()-start}\n")
-
-#CCSD Convergence Loop
-#Iterate until converged
-E_Corr2=0
-DiffE=1
-DiffT1=1
-DiffT2=1
-t1RMSE=1
-t2RMSE=1
-N=0
+# Convergence thresholds on energy and amplitudes
+ThrE = 1e-10
+ThrA = ThrE*100
+# Maximum number of iterations allowed
 MaxIt = 100
-#CCSD T and E Loop
-start0=time.time()
+# Define denominator arrays
+W = 0
+D1, D2 =  denom(1, O2, V2, Fock, W)
 with open(f"{molecule}.txt","a") as writer:
-  writer.write("___________________________________________________________________\n\n*******SOLVING CCSD T AMPLITUDE AND ENERGY EQS.*******\n___________________________________________________________________\n\n")
-while DiffE>1e-9 or DiffT1>1e-7 or DiffT2>1e-7 or t1RMSE>1e-7 or t2RMSE>1e-7 and N< MaxIt:
-  E_Corr1=E_Corr2
-  # Calculate intermediates
-  start=time.time()
-  tau_tilde = tau_tildeEq(1, O, V, t1, t2)
-  tau = tauEq(1, O, V, t1, t2)
-  F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej = intermediateEqs(1, O, V, Fock, t1, t2, IJKL, ABCD, IABC, IJAB, IAJB, IJKA, tau_tilde, tau)
-  # Do t1 step
-  t1_f = t1Eq(1, O, Fock, t1, t2, IABC, IJKA, IAJB, F_ae, F_mi, F_me, D1)
-  # t1_f = np.zeros((O2, V2))
-  # Do t2 step
-  t2_f = t2Eq(1, t1, t2, IABC, IJAB, IJKA, IAJB, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, D2)
-  # t2_f = IJAB/D2
-  DiffT1 = abs(np.max(t1_f-t1))
-  DiffT2 = abs(np.max(t2_f-t2))
-  t1RMSE = (np.sum(((t1_f-t1)**(2))/(np.size(t1))))**(1/2)
-  t2RMSE = (np.sum(((t2_f-t2)**(2))/(np.size(t2))))**(1/2)
-  t1 = np.copy(t1_f)
-  t2 = np.copy(t2_f)
-  E_Corr2 = E_CCSD(O, Fock, t1, IJAB, tau)
-  DiffE = abs(E_Corr2-E_Corr1)
-  N +=1
-  with open(f"{molecule}.txt","a") as writer:
-    writer.write(f"Iteration {N}: E_corr(CCSD) {E_Corr2}, ")
-    writer.write(f"E(CCSD): {scfE+E_Corr2}, ")
-    writer.write(f"Time: {time.time()-start}\n")
+  writer.write(f"Compute energy denominators, Time: {time.time()-start:.2f}s\n")
+  
+##########################################################################  
+# CCSD Energy and Amplitudes
+##########################################################################
+start=time.time()
+# Initialize T1 and T2
+t1 = np.zeros((O2, V2))
+t2 = np.zeros((O2, O2, V2, V2))
+t2 = IJAB/D2
+# Solve amplitude equations
 with open(f"{molecule}.txt","a") as writer:
-  writer.write(f"Total Time: {time.time()-start0}\n")
-DiffL1=1
-DiffL2=1
-lam1RMSE=1
-lam2RMSE=1
-N=0
+  writer.write("****************************************************\n")
+  writer.write("*          SOLVING CCSD T AMPLITUDE EQS.           *\n")
+  writer.write("****************************************************\n")
+tau = np.zeros((O2, O2, V2, V2))
+W_efam = np.zeros((V2, V2, V2, O2))
+W_iemn = np.zeros((O2, V2, O2, O2))
+W_mbej = np.zeros((O2, V2, V2, O2))
+W_mnij = np.zeros((O2, O2, O2, O2))
+W_abef = np.zeros((V2, V2, V2, V2))
+F_ae = np.zeros((V2, V2))
+F_mi = np.zeros((O2, O2))
+F_me = np.zeros((O2, V2))
+t1, t2 = AmpIt("T",molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,ABCD,IABC,IJAB,IAJB,IJKA,tau,W_efam,W_iemn,W_mbej,W_mnij,W_abef,F_ae,F_mi,F_me,D1,D2,D1,D2,t1,t2,t1,t2,t1,t2)
 
-shape=np.shape(t2)
-
-#CCSD Lambda equations loop
-#Iterate until converged
-EL_Corr2=0
-DiffE=1
-DiffT1=1
-DiffT2=1
-t1RMSE=1
-t2RMSE=1
+##########################################################################  
+# Compute constant intermediates
+##########################################################################  
+start=time.time()
+tau_tilde = tau_tildeEq(1, t1, t2)
+tau = tauEq(1, t1, t2)
+F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej = intermediateEqs(1, O, V, Fock, t1, t2, IJKL, ABCD, IABC, IJAB, IAJB, IJKA, tau_tilde, tau)
+del ABCD
+W_efam, W_iemn = L_intermediate_const(1,t1,t2,tau,IJAB,IAJB,IJKA,IABC,F_ae,F_mi,F_me,W_mnij,W_abef,W_mbej)
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Compute constant intermediates, Time: {time.time()-start:.2f}s\n")
+  
+##########################################################################  
+# CCSD Lambda Amplitudes
+##########################################################################
 l1 = np.zeros((O2, V2))
 l2 = np.zeros((O2, O2, V2, V2))
 l1 = np.copy(t1)
 l2 = np.copy(t2)
-N=0
-#CCSD Lambda Loop
-with open(f"{molecule}.txt","a") as writer:
-  writer.write("\n\n___________________________________________________________________\n\n*******SOLVING CCSD Lambda AMPLITUDE EQS.*******\n___________________________________________________________________\n\n")
-# Compute constant intermediates
-start=time.time()
-tau_tilde = tau_tildeEq(1, O, V, t1, t2)
-tau = tauEq(1,O,V,t1,t2)
-F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej = intermediateEqs(1, O, V, Fock, t1, t2, IJKL, ABCD, IABC, IJAB, IAJB, IJKA, tau_tilde, tau)
-W_efam, W_iemn = L_intermediate_const(1,t1,t2,tau,IJAB,IAJB,IJKA,IABC,F_ae,F_mi,F_me,W_mnij,W_abef,W_mbej)
-with open(f"{molecule}.txt","a") as writer:
-  writer.write(f"Compute constant intermediates, Time: {time.time()-start}\n")
-# Loop
 start0=time.time()
-while DiffE>1e-9 or DiffT1>1e-7 or DiffT2>1e-7 or t1RMSE>1e-7 or t2RMSE>1e-7 and N< MaxIt:
-  EL_Corr1 = EL_Corr2
-  # Calculate intermediates
-  start=time.time()
-  G_ae, G_mi = L_intermediate(1,t2,l2)
-  # Do l1 step
-  l1_f = l1Eq(1,t1,l1,l2,IJAB,IABC,IJKA,W_efam,W_iemn,W_mbej,F_ae,F_mi,F_me,G_ae,G_mi,D1)
-  # l1_f = np.zeros((O2, V2))
-  # Do l2 step
-  l2_f = l2Eq(1,t1,l1,l2,IABC,IJAB,IJKA,F_ae,F_mi,F_me,G_ae,G_mi,W_mnij,W_abef,W_mbej,D2)
-  # l2_f = IJAB/D2
-  DiffT1 = abs(np.max(l1_f-l1))
-  DiffT2 = abs(np.max(l2_f-l2))
-  t1RMSE = (np.sum(((l1_f-l1)**(2))/(np.size(l1))))**(1/2)
-  t2RMSE = (np.sum(((l2_f-l2)**(2))/(np.size(l2))))**(1/2)
-  l1 = np.copy(l1_f)
-  l2 = np.copy(l2_f)
-  # Compute the a fake tau to check the energy, consistently with
-  # Gaussian, but let's use the tau_tilde array.
-  tau_tilde = tauEq(1, O, V, l1, l2)
-  EL_Corr2 = E_CCSD(O,Fock,l1,IJAB,tau_tilde)
-  DiffE = abs(EL_Corr2-EL_Corr1)
-  N +=1
-  with open(f"{molecule}.txt","a") as writer:
-    writer.write(f"Iteration {N}: DE(L-CCSD) {EL_Corr2}, ")
-    writer.write(f"E(L-CCSD): {scfE+EL_Corr2}, ")
-    writer.write(f"Time: {time.time()-start}\n")
 with open(f"{molecule}.txt","a") as writer:
-  writer.write(f"Total Time: {time.time()-start0}\n")
-DiffL1=1
-DiffL2=1
-lam1RMSE=1
-lam2RMSE=1
-N=0
+  writer.write("****************************************************\n")
+  writer.write("*        SOLVING CCSD Lambda AMPLITUDE EQS.        *\n")
+  writer.write("****************************************************\n")
+l1, l2 = AmpIt("L",molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,W_abef,IABC,IJAB,IAJB,IJKA,tau,W_efam,W_iemn,W_mbej,W_mnij,W_abef,F_ae,F_mi,F_me,D1,D2,D1,D2,t1,t2,l1,l2,t1,t2)
+
+##########################################################################  
+# CCSD LR equations
+##########################################################################
+#
+# NPert = number of perturbations (3 for dipoles and 6 for quadrupoles)
+# WPert = frequency of perturbation
+# if WPErt != 0, there two sets of amplitudes per perturbation Tx(+w) and Tx(-w)
+# Use same intermediates as in Lambda equations
+with open(f"{molecule}.txt","a") as writer:
+  writer.write("****************************************************\n")
+  writer.write("*           COMPUTING CCSD LR FUNCTION             *\n")
+  writer.write("****************************************************\n")
+PertType = "DipE"
+NP, X_ij, X_ia, X_ab = getpert(O,V,NB,Coeff,PertType,molecule)
+# For now, hardwire frequency of 300 nm
+Wlist = []
+Wlist.append(0.15187784178412805)
+tx1 = np.zeros((len(Wlist), NP, 2, O2, V2))
+tx2 = np.zeros((len(Wlist), NP, 2, O2, O2, V2, V2))
+tensor = np.zeros((len(Wlist), NP, NP))
+for iw in range(len(Wlist)):
+  # Loop over frequencies    
+  W = Wlist[iw]
+  NW = 2
+  if (W==0): NW = 1 
+  for ip in range(NP):
+    # Loop over number of pertubations
+    rhs1, rhs2 = pert_rhs(1, t1, t2, X_ij[ip,:,:], X_ia[ip,:,:], X_ab[ip,:,:])
+    with open(f"{molecule}.txt","a") as writer:
+      writer.write(f"\n Perturbation {PertType}-{ip+1}\n")
+    for ipmw in range(NW):
+      # Loop over +/-omega
+      PMW = W
+      if (ipmw==1): PMW = -W 
+      with open(f"{molecule}.txt","a") as writer:
+        writer.write(f"\n Frequency {PMW:+f}\n")
+      # Reset denominators including frequency term
+      D1, D2 =  denom(1, O2, V2, Fock, PMW)
+      # Initialize amplitudes
+      tx1[iw,ip,ipmw,:,:] = -rhs1/D1
+      tx2[iw,ip,ipmw,:,:,:,:] = -rhs2/D2
+      # Amplitudes loop
+      tx1[iw,ip,ipmw,:,:], tx2[iw,ip,ipmw,:,:,:,:] = AmpIt("Tx",molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,W_abef,IABC,IJAB,IAJB,IJKA,tau,W_efam,W_iemn,W_mbej,W_mnij,W_abef,F_ae,F_mi,F_me,rhs1,rhs2,D1,D2,t1,t2,l1,l2,tx1[iw,ip,ipmw,:,:],tx2[iw,ip,ipmw,:,:,:,:])
+  #
+  # Now that we have all the Tx amplitudes for this W, we can compute
+  # the corresponding Xi amplitudes and contract with all other Tx
+  # amplitudes, and the transition 1PDM-like rho1 and contract with
+  # the perturbation integrals
+  #
+  start0=time.time()
+  # Reset denominators
+  D1, D2 =  denom(1, O2, V2, Fock, 0)
+  for ip in range(NP):
+    # Evaluate Xi amplitudes 
+    Xi1, Xi2 = Xi(1,tx1[iw,ip,0,:,:],tx2[iw,ip,0,:,:,:,:],l1,l2,t1,IABC,IJAB,IJKA,F_ae,F_mi,F_me,W_mbej,D2)
+    for ipa in range(NP):
+      # Contract Xi(ip) with Tx(ipa)
+      tensor[iw,ip,ipa] -= np.einsum('ia,ia->',Xi1,tx1[iw,ipa,1,:,:],optimize=True) 
+      tensor[iw,ip,ipa] -= 0.25*np.einsum('ijab,ijab->',Xi2,tx2[iw,ipa,1,:,:,:,:],optimize=True)
+    del Xi1, Xi2
+    for ipmw in range(NW):
+      # Loop over +/-omega
+      PMW = W
+      if (ipmw==1): PMW = -W
+      # Evaluate 1PDM
+      rho1 = TrDen1(1,O2,NB2,tx1[iw,ip,ipmw,:,:],tx2[iw,ip,ipmw,:,:,:,:],l1,l2,t1,t2)
+      for ipa in range(NP):
+        # Contract 1PDM(ip) with Pert(ipa)
+        tensor[iw,ip,ipa] += np.einsum('ij,ij->',X_ij[ipa,:,:],rho1[:O2,:O2],optimize=True) 
+        tensor[iw,ip,ipa] += np.einsum('ia,ia->',X_ia[ipa,:,:],rho1[:O2,O2:],optimize=True)   
+        tensor[iw,ip,ipa] += np.einsum('ab,ab->',X_ab[ipa,:,:],rho1[O2:,O2:],optimize=True)   
+  # Print the tensor for frequency W
+  with open(f"{molecule}.txt","a") as writer:
+    writer.write(f"\n DipE(LG)-DipE(LG) Polarizability in a.u. for W = {W:.6f} a.u.\n")
+  for ip in range(NP):
+    with open(f"{molecule}.txt","a") as writer:
+      writer.write(f" {ip+1} {tensor[iw,ip,0]:+.6f} {tensor[iw,ip,1]:+.6f} {tensor[iw,ip,2]:+.6f}\n")
+  with open(f"{molecule}.txt","a") as writer:
+    writer.write(f"Time: {time.time()-start:.2f}\n")
+               
