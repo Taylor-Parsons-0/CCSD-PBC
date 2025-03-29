@@ -42,10 +42,21 @@ def denom(T, O2, V2, Fock, W):
 ##########################################################################
 # Wrapper routine for iterative solution of CCSD amplitude equations
 ##########################################################################
-def AmpIt(AmpType,molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,ABCD,IABC,IJAB,IAJB,IJKA,tau,W_efam,W_iemn,W_mbej,W_mnij,W_abef,F_ae,F_mi,F_me,rhs1,rhs2,D1,D2,t1,t2,l1,l2,tx1,tx2):
+def AmpIt(AmpType,molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,ABCD,IABC,
+          IJAB,IAJB,IJKA,tau,W_efam,W_iemn,W_mbej,W_mnij,W_abef,F_ae,F_mi,
+          F_me,rhs1,rhs2,D1,D2,t1,t2,l1,l2,tx1,tx2):
   E_Corr2 = 0
   N = 0
   not_conver = True
+  # Setup DIIS arrays
+  st1 = []
+  st2 = []
+  e_DIIS = []
+  MaxD = 6
+  RepD = 5
+  DoDIIS = "F"
+  B_mat = np.zeros((MaxD,MaxD))
+  # Start loop
   start0=time.time()
   while not_conver and N< MaxIt:
     start = time.time()
@@ -53,54 +64,89 @@ def AmpIt(AmpType,molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,ABCD,IABC,IJAB,IAJ
     E_Corr1 = E_Corr2
     if(AmpType == "T"):
       # Ground state T amplitudes
+      if(N==1):
+        # Initialize DIIS amplitudes with guess
+        st1.append(list(t1.flatten()))
+        st2.append(list(t2.flatten()))
       # Calculate intermediates
       tau_tilde = tau_tildeEq(1, t1, t2)
       tau = tauEq(1, t1, t2)
-      F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej = intermediateEqs(1, O, V, Fock, t1, t2, IJKL, ABCD, IABC, IJAB, IAJB, IJKA, tau_tilde, tau)
+      F_ae,F_mi,F_me,W_mnij,W_abef,W_mbej = intermediateEqs(1,O,V,Fock,t1,t2,
+                                                            IJKL,ABCD,IABC,IJAB,
+                                                            IAJB,IJKA,tau_tilde,
+                                                            tau)
       # Amplitude iteration
       t1_f = t1Eq(1,O,Fock,t1,t2,IABC,IJKA,IAJB,F_ae,F_mi,F_me,D1)
-      t2_f = t2Eq(1,t1,t2,IABC,IJAB,IJKA,IAJB,tau,F_ae,F_mi,F_me,W_mnij,W_abef,W_mbej,D2)
+      t2_f = t2Eq(1,t1,t2,IABC,IJAB,IJKA,IAJB,tau,F_ae,F_mi,F_me,
+                  W_mnij,W_abef,W_mbej,D2)
       tau = tauEq(1, t1_f, t2_f)
       # Evaluate convergence
-      not_conver,E_Corr2,t1,t2 = AmpConv(AmpType,O,t1,t2,t1_f,t2_f,tau,Fock,D1,IJAB,ThrE,ThrA,E_Corr1)
+      not_conver,E_Corr2,t1,t2 = AmpConv(AmpType,O,t1,t2,t1_f,t2_f,tau,
+                                         Fock,D1,IJAB,ThrE,ThrA,E_Corr1)
       del t1_f, t2_f
-      textA = f"Iter. {N}: E_corr(CCSD) {E_Corr2:.10f}, E(CCSD): {scfE+E_Corr1:.10f}"
+      t1, t2, DoDIIS = DIIS(O,V,N,MaxD,ThrA,RepD,t1,t2,B_mat,st1,st2,
+                            e_DIIS,DoDIIS)
+      textA = f"Iter. {N}: DIIS = {DoDIIS}, E_corr(CCSD) {E_Corr2:.10f}, E(CCSD): {scfE+E_Corr2:.10f}"
       a1 = t1
       a2 = t2
     elif (AmpType == "L"):
       # Ground state Lambda (or Z) amplitudes
+      if(N==1):
+        # Initialize DIIS amplitudes with guess
+        st1.append(list(l1.flatten()))
+        st2.append(list(l2.flatten()))
       # Calculate intermediates
       G_ae, G_mi = L_intermediate(1,t2,l2)
       # Amplitude iteration
-      l1_f = l1Eq(1,t1,l1,l2,IJAB,IABC,IJKA,W_efam,W_iemn,W_mbej,F_ae,F_mi,F_me,G_ae,G_mi,D1)
-      l2_f = l2Eq(1,t1,l1,l2,IABC,IJAB,IJKA,F_ae,F_mi,F_me,G_ae,G_mi,W_mnij,W_abef,W_mbej,D2)
+      l1_f = l1Eq(1,t1,l1,l2,IJAB,IABC,IJKA,W_efam,W_iemn,W_mbej,F_ae,
+                  F_mi,F_me,G_ae,G_mi,D1)
+      l2_f = l2Eq(1,t1,l1,l2,IABC,IJAB,IJKA,F_ae,F_mi,F_me,G_ae,G_mi,
+                  W_mnij,W_abef,W_mbej,D2)
       tau_tilde = tauEq(1, l1_f, l2_f)
       E_Corr2 = E_CCSD(O, Fock, l1_f, IJAB, tau_tilde)
       # Evaluate convergence
-      not_conver, E_Corr2, l1, l2 = AmpConv(AmpType,O,l1,l2,l1_f,l2_f,tau_tilde,Fock,D1,IJAB,ThrE,ThrA,E_Corr1)
+      not_conver, E_Corr2, l1, l2 = AmpConv(AmpType,O,l1,l2,l1_f,l2_f,tau_tilde,
+                                            Fock,D1,IJAB,ThrE,ThrA,E_Corr1)
       del l1_f, l2_f, G_ae, G_mi 
-      textA = f"Iter. {N}: DE(L-CCSD) {E_Corr2:.10f}, E(L-CCSD): {scfE+E_Corr1:.10f}"
+      l1, l2, DoDIIS = DIIS(O,V,N,MaxD,ThrA,RepD,l1,l2,B_mat,st1,st2,
+                            e_DIIS,DoDIIS)
+      textA = f"Iter. {N}: DIIS = {DoDIIS}, DE(L-CCSD) {E_Corr2:.10f}, E(L-CCSD): {scfE+E_Corr2:.10f}"
       a1 = l1
       a2 = l2
     elif (AmpType == "Tx"):
       # Perturbed T amplitudes
+      if(N==1):
+        # Initialize DIIS amplitudes with guess
+        st1.append(list(tx1.flatten()))
+        st2.append(list(tx2.flatten()))
       # Calculate intermediates
       G_ae, G_mi = L_intermediate(1,IJAB,tx2)
       # Amplitude iteration
       tx1_f = tx1Eq(1,tx1,tx2,t1,IABC,IJKA,W_mbej,F_ae,F_mi,F_me,G_ae,G_mi,D1)
       tx1_f -= rhs1/D1
-      tx2_f = tx2Eq(1,tx1,tx2,t1,t2,IABC,IJAB,IJKA,F_ae,F_mi,F_me,G_ae,G_mi,W_mnij,W_abef,W_efam,W_iemn,W_mbej,D2)
+      tx2_f = tx2Eq(1,tx1,tx2,t1,t2,IABC,IJAB,IJKA,F_ae,F_mi,F_me,G_ae,G_mi,
+                    W_mnij,W_abef,W_efam,W_iemn,W_mbej,D2)
       tx2_f -= rhs2/D2
       # Evaluate convergence
-      not_conver, E_Corr2, tx1, tx2 = AmpConv(AmpType,O,tx1,tx2,tx1_f,tx2_f,tau,Fock,rhs1,rhs2,ThrE,ThrA,E_Corr1)
+      not_conver, E_Corr2, tx1, tx2 = AmpConv(AmpType,O,tx1,tx2,tx1_f,tx2_f,tau,
+                                              Fock,rhs1,rhs2,ThrE,ThrA,E_Corr1)
       del tx1_f, tx2_f, G_ae, G_mi 
-      textA = f"Iter. {N}: DE(Tx-CCSD) {E_Corr2:.10f}, E(Tx-CCSD): {scfE+E_Corr1:.10f}"
+      tx1, tx2, DoDIIS = DIIS(O,V,N,MaxD,ThrA,RepD,tx1,tx2,B_mat,st1,st2,
+                              e_DIIS,DoDIIS)
+      textA = f"Iter. {N}: DIIS = {DoDIIS}, DE(Tx-CCSD) {E_Corr2:.10f}, E(Tx-CCSD): {scfE+E_Corr2:.10f}"
       a1 = tx1
       a2 = tx2
     else :
       with open(f"{molecule}.txt","a") as writer:
         writer.write(f"Amplitude type {AmpType} is not implemented. ")
       exit()
+    # for i in range(2*O):
+    #   for a in range(2*V):
+    #     if(abs(a1[i,a])> 1.e-5):
+    #       with open(f"{molecule}.txt","a") as writer:
+    #         writer.write(f"T({i},{a}) = {a1[i,a]:.6f}\n")
+        
+    
     with open(f"{molecule}.txt","a") as writer:
       writer.write(f"{textA}, Time: {time.time()-start:.2f}s\n")
   if(not_conver):
@@ -109,7 +155,8 @@ def AmpIt(AmpType,molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,ABCD,IABC,IJAB,IAJ
     exit()
   else:
     with open(f"{molecule}.txt","a") as writer:
-      writer.write(f"{AmpType} amplitude equations converged in {time.time()-start0:.2f}s\n")
+      writer.write(f"{AmpType} amplitude equations converged in {time.time()-start0:.2f}s\n\n")
+  del st1, st2, e_DIIS, B_mat
   return a1, a2
 
 ##########################################################################
@@ -136,6 +183,57 @@ def AmpConv(AmpType,O,a1,a2,a1_f,a2_f,tau,Fock,I1Int,I2Int,ThrE,ThrA,E_Corr1):
   return not_conver, E_Corr2, a1, a2
 
 ##########################################################################
+# DIIS Extrapolation
+##########################################################################
+def DIIS(O,V,Iter,MaxD,Thr,RepD,amp1,amp2,B,st1,st2,e_DIIS,DoDIIS):
+  # Iter: current iteration
+  # MaxD: size of the extrapolation space + 1 (for the constraint)
+  # Thr: threshold on error to activate DIIS step
+  # RepD: perform extrapolation every RepD iterations
+  # amp1/2: amplitudes to extrapolate
+  # st1/2: saved amplitudes from previous iterations
+  # e_DIIS: save errors between iterations
+  # B: DIIS matrix
+  ThrD = Thr/100
+  st1.append(list(amp1.flatten()))
+  st2.append(list(amp2.flatten()))
+  if len(st1)!= len(st2):
+    print(f"String length mismatch in DIIS: {len(st1)}, {len(st2)}\n")
+    exit()
+  ev = list(np.array(st1[len(st1) - 1]) - np.array(st1[len(st1) - 2])) + list(np.array(st2[len(st2) - 1]) - np.array(st2[len(st2) - 2]))
+  e_DIIS.append(ev)
+  if len(st1) > MaxD:
+    # Remove the oldest information 
+    del st1[0]
+    del st2[0]
+    del e_DIIS[0]
+  DoDIIS = "F"
+  if len(st1)==MaxD and (Iter%RepD==0):
+    B[:MaxD-1,:MaxD-1] += np.einsum('ik,jk->ij',np.array(e_DIIS),np.array(e_DIIS),optimize=True)
+    B[MaxD-1,:] = 1
+    B[:,MaxD-1] = 1
+    B[MaxD-1,MaxD-1] = 0
+    rhs = np.zeros(MaxD)
+    rhs[MaxD-1] = 1
+    ETest = np.max(abs(B[:MaxD-1,:MaxD-1]))
+    if ETest >= ThrD:
+      csol = np.linalg.solve(B,rhs)
+      csum = np.sum(csol[:MaxD-1])
+      if(abs(csum-1)>ThrD):
+        print(f"Issue with coefficients in DIIS: sum_C = {csum}\n")
+        exit()
+      t1d = np.zeros((len(st1[0])))
+      t2d = np.zeros((len(st2[0])))
+      for p in range(MaxD-1):
+        t1d += np.array(st1[p+1]) * csol[p]
+        t2d += np.array(st2[p+1]) * csol[p]
+      amp1 = np.reshape(t1d,((2*O),(2*V)))
+      amp2 = np.reshape(t2d,((2*O),(2*O),(2*V),(2*V)))
+      del t1d, t2d
+      DoDIIS = "T"
+  return amp1, amp2, DoDIIS
+
+##########################################################################
 # tau_tilde intermediate for CCSD T equations
 ##########################################################################
 def tau_tildeEq(T, t1, t2):
@@ -158,7 +256,8 @@ def tauEq(T, t1, t2):
 ##########################################################################
 # F and W intermediates for CCSD T equations
 ##########################################################################
-def intermediateEqs(T, O, V, Fock, t1, t2, IJKL, ABCD, IABC, IJAB, IAJB, IJKA, tau_tilde, tau):
+def intermediateEqs(T, O, V, Fock, t1, t2, IJKL, ABCD, IABC, IJAB, IAJB,
+                    IJKA, tau_tilde, tau):
   O2=2*O
   V2=2*V
   if T==1:
@@ -214,7 +313,8 @@ def t1Eq(T, O, Fock, t1, t2, IABC, IJKA, IAJB, F_ae, F_mi, F_me, D1):
 #########################################################################
 # CCSD T2 amplitude equation
 #########################################################################
-def t2Eq(T, t1, t2, IABC, IJAB, IJKA, IAJB, tau, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej, D2):
+def t2Eq(T, t1, t2, IABC, IJAB, IJKA, IAJB, tau, F_ae, F_mi, F_me, W_mnij,
+         W_abef, W_mbej, D2):
   if T==1:
     # P(ab) terms
     X1 = F_ae - 0.5*np.einsum('mb,me->be',t1,F_me,optimize=True)
@@ -257,7 +357,8 @@ def E_CCSD(O, Fock, t1, IJAB, tau):
 #########################################################################
 # Define constant intermediates for CCSD Lambda and response equations
 #########################################################################
-def L_intermediate_const(T, t1, t2, tau, IJAB, IAJB, IJKA, IABC, F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej):
+def L_intermediate_const(T, t1, t2, tau, IJAB, IAJB, IJKA, IABC, F_ae,
+                         F_mi, F_me, W_mnij, W_abef, W_mbej):
   if T==1:
     # Remember that the contraction for Lambda is over the opposite one or two indices (same for W_mnij)
     F_ae -= 0.5*np.einsum('ma,me->ae',t1,F_me,optimize=True)
@@ -306,7 +407,8 @@ def L_intermediate(T, t2, l2):
 #########################################################################
 # CCSD Lambda1 amplitude equation
 #########################################################################
-def l1Eq(T, t1, l1, l2, IJAB, IABC, IJKA, W_efam, W_iemn, W_mbej, F_ae, F_mi, F_me, G_ae, G_mi, D1):
+def l1Eq(T, t1, l1, l2, IJAB, IABC, IJKA, W_efam, W_iemn, W_mbej, F_ae,
+         F_mi, F_me, G_ae, G_mi, D1):
   if T==1:
     l1_f = np.copy(F_me)  
     l1_f += np.einsum('ie,ea->ia',l1,F_ae,optimize=True)
@@ -326,7 +428,8 @@ def l1Eq(T, t1, l1, l2, IJAB, IABC, IJKA, W_efam, W_iemn, W_mbej, F_ae, F_mi, F_
 #########################################################################
 # CCSD Lambda2 amplitude equation
 #########################################################################
-def l2Eq(T, t1, l1, l2, IABC, IJAB, IJKA, F_ae, F_mi, F_me, G_ae, G_mi, W_mnij, W_abef, W_mbej, D2):
+def l2Eq(T, t1, l1, l2, IABC, IJAB, IJKA, F_ae, F_mi, F_me, G_ae, G_mi,
+         W_mnij, W_abef, W_mbej, D2):
   if T==1:
     l2_f = np.copy(IJAB)
     l2_f += 0.5*np.einsum('ijef,efab->ijab',l2,W_abef,optimize=True)
@@ -385,7 +488,8 @@ def pert_rhs(T, t1, t2, X_ij, X_ia, X_ab):
 #########################################################################
 # CCSD Tx1 (or EOM R1) amplitude equation
 #########################################################################
-def tx1Eq(T, tx1, tx2, t1, IABC, IJKA, W_mbej, F_ae, F_mi, F_me, G_ae, G_mi, D1):
+def tx1Eq(T, tx1, tx2, t1, IABC, IJKA, W_mbej, F_ae, F_mi, F_me, G_ae,
+          G_mi, D1):
   # Constant term needs to be added outside (as it's not in the EOM eqs.)
   # It requires getting G_ae, G_mi = L_intermediate(T, IJAB, tx2)
   if T==1:
@@ -404,7 +508,8 @@ def tx1Eq(T, tx1, tx2, t1, IABC, IJKA, W_mbej, F_ae, F_mi, F_me, G_ae, G_mi, D1)
 #########################################################################
 # CCSD Tx2 (or EOM R2) amplitude equation
 #########################################################################
-def tx2Eq(T, tx1, tx2, t1, t2, IABC, IJAB, IJKA, F_ae, F_mi, F_me, G_ae, G_mi, W_mnij, W_abef, W_efam, W_iemn, W_mbej, D2):
+def tx2Eq(T, tx1, tx2, t1, t2, IABC, IJAB, IJKA, F_ae, F_mi, F_me, G_ae,
+          G_mi, W_mnij, W_abef, W_efam, W_iemn, W_mbej, D2):
   # Constant term needs to be added outside (as it's not in the EOM eqs.)
   # It requires getting G_ae, G_mi = L_intermediate(T, IJAB, tx2)
   if T==1:
@@ -442,7 +547,8 @@ def tx2Eq(T, tx1, tx2, t1, t2, IABC, IJAB, IJKA, F_ae, F_mi, F_me, G_ae, G_mi, W
 #########################################################################
 # CCSD Xi amplitudes for LR and EOM gradients
 #########################################################################
-def Xi(T, tx1, tx2, l1, l2, t1, IABC, IJAB, IJKA, F_ae, F_mi, F_me, W_mbej, D2):
+def Xi(T, tx1, tx2, l1, l2, t1, IABC, IJAB, IJKA, F_ae, F_mi, F_me,
+       W_mbej, D2):
   # L can be the ground or excited state Lambda amplitudes
   # Tx can be the LR Tx or the EOM R amplitudes
   if T==1:

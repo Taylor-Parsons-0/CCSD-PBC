@@ -83,7 +83,9 @@ W_abef = np.zeros((V2, V2, V2, V2))
 F_ae = np.zeros((V2, V2))
 F_mi = np.zeros((O2, O2))
 F_me = np.zeros((O2, V2))
-t1, t2 = AmpIt("T",molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,ABCD,IABC,IJAB,IAJB,IJKA,tau,W_efam,W_iemn,W_mbej,W_mnij,W_abef,F_ae,F_mi,F_me,D1,D2,D1,D2,t1,t2,t1,t2,t1,t2)
+t1, t2 = AmpIt("T",molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,
+               ABCD,IABC,IJAB,IAJB,IJKA,tau,W_efam,W_iemn,W_mbej,
+               W_mnij,W_abef,F_ae,F_mi,F_me,D1,D2,D1,D2,t1,t2,t1,t2,t1,t2)
 
 ##########################################################################  
 # Compute constant intermediates
@@ -91,9 +93,12 @@ t1, t2 = AmpIt("T",molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,ABCD,IABC,IJAB,IA
 start=time.time()
 tau_tilde = tau_tildeEq(1, t1, t2)
 tau = tauEq(1, t1, t2)
-F_ae, F_mi, F_me, W_mnij, W_abef, W_mbej = intermediateEqs(1, O, V, Fock, t1, t2, IJKL, ABCD, IABC, IJAB, IAJB, IJKA, tau_tilde, tau)
+F_ae,F_mi,F_me,W_mnij,W_abef,W_mbej = intermediateEqs(1,O,V,Fock,t1,t2,IJKL,
+                                                      ABCD,IABC,IJAB,IAJB,IJKA,
+                                                      tau_tilde,tau)
 del ABCD
-W_efam, W_iemn = L_intermediate_const(1,t1,t2,tau,IJAB,IAJB,IJKA,IABC,F_ae,F_mi,F_me,W_mnij,W_abef,W_mbej)
+W_efam, W_iemn = L_intermediate_const(1,t1,t2,tau,IJAB,IAJB,IJKA,IABC,
+                                      F_ae,F_mi,F_me,W_mnij,W_abef,W_mbej)
 with open(f"{molecule}.txt","a") as writer:
   writer.write(f"Compute constant intermediates, Time: {time.time()-start:.2f}s\n")
   
@@ -109,7 +114,10 @@ with open(f"{molecule}.txt","a") as writer:
   writer.write("****************************************************\n")
   writer.write("*        SOLVING CCSD Lambda AMPLITUDE EQS.        *\n")
   writer.write("****************************************************\n")
-l1, l2 = AmpIt("L",molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,W_abef,IABC,IJAB,IAJB,IJKA,tau,W_efam,W_iemn,W_mbej,W_mnij,W_abef,F_ae,F_mi,F_me,D1,D2,D1,D2,t1,t2,l1,l2,t1,t2)
+l1, l2 = AmpIt("L",molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,W_abef,IABC,
+               IJAB,IAJB,IJKA,tau,W_efam,W_iemn,W_mbej,W_mnij,W_abef,F_ae,
+               F_mi,F_me,D1,D2,D1,D2,t1,t2,l1,l2,t1,t2)
+# exit()
 
 ##########################################################################  
 # CCSD LR equations
@@ -147,13 +155,18 @@ for iw in range(len(Wlist)):
       if (ipmw==1): PMW = -W 
       with open(f"{molecule}.txt","a") as writer:
         writer.write(f"\n Frequency {PMW:+f}\n")
-      # Reset denominators including frequency term
+      # Reset denominators including frequency term and initialize amplitudes
       D1, D2 =  denom(1, O2, V2, Fock, PMW)
-      # Initialize amplitudes
-      tx1[iw,ip,ipmw,:,:] = -rhs1/D1
-      tx2[iw,ip,ipmw,:,:,:,:] = -rhs2/D2
+      tx1[iw,ip,ipmw,:,:] -= rhs1/D1
+      tx2[iw,ip,ipmw,:,:,:,:] -= rhs2/D2
       # Amplitudes loop
-      tx1[iw,ip,ipmw,:,:], tx2[iw,ip,ipmw,:,:,:,:] = AmpIt("Tx",molecule,O,V,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,W_abef,IABC,IJAB,IAJB,IJKA,tau,W_efam,W_iemn,W_mbej,W_mnij,W_abef,F_ae,F_mi,F_me,rhs1,rhs2,D1,D2,t1,t2,l1,l2,tx1[iw,ip,ipmw,:,:],tx2[iw,ip,ipmw,:,:,:,:])
+      tx1[iw,ip,ipmw,:,:], tx2[iw,ip,ipmw,:,:,:,:] = AmpIt("Tx",molecule,O,V,MaxIt,ThrE,ThrA,
+                                                           scfE,Fock,IJKL,W_abef,IABC,IJAB,
+                                                           IAJB,IJKA,tau,W_efam,W_iemn,W_mbej,
+                                                           W_mnij,W_abef,F_ae,F_mi,F_me,rhs1,
+                                                           rhs2,D1,D2,t1,t2,l1,l2,
+                                                           tx1[iw,ip,ipmw,:,:],
+                                                           tx2[iw,ip,ipmw,:,:,:,:])
   #
   # Now that we have all the Tx amplitudes for this W, we can compute
   # the corresponding Xi amplitudes and contract with all other Tx
@@ -165,7 +178,8 @@ for iw in range(len(Wlist)):
   D1, D2 =  denom(1, O2, V2, Fock, 0)
   for ip in range(NP):
     # Evaluate Xi amplitudes 
-    Xi1, Xi2 = Xi(1,tx1[iw,ip,0,:,:],tx2[iw,ip,0,:,:,:,:],l1,l2,t1,IABC,IJAB,IJKA,F_ae,F_mi,F_me,W_mbej,D2)
+    Xi1, Xi2 = Xi(1,tx1[iw,ip,0,:,:],tx2[iw,ip,0,:,:,:,:],
+                  l1,l2,t1,IABC,IJAB,IJKA,F_ae,F_mi,F_me,W_mbej,D2)
     for ipa in range(NP):
       # Contract Xi(ip) with Tx(ipa)
       tensor[iw,ip,ipa] -= np.einsum('ia,ia->',Xi1,tx1[iw,ipa,1,:,:],optimize=True) 
@@ -173,8 +187,6 @@ for iw in range(len(Wlist)):
     del Xi1, Xi2
     for ipmw in range(NW):
       # Loop over +/-omega
-      PMW = W
-      if (ipmw==1): PMW = -W
       # Evaluate 1PDM
       rho1 = TrDen1(1,O2,NB2,tx1[iw,ip,ipmw,:,:],tx2[iw,ip,ipmw,:,:,:,:],l1,l2,t1,t2)
       for ipa in range(NP):
