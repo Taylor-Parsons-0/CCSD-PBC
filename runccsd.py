@@ -3,8 +3,8 @@ import os
 import sys
 import re
 import time
-from read import getFort, get2e, conMO, getpert
-from ein_ccsdAmps import denom, AmpIt, tau_tildeEq, tauEq, T_interm, t1Eq, t2Eq, E_CCSD, fill_kl, L_Interm, Const_Interm, l1Eq, l2Eq#, pert_rhs, tx1Eq, tx2Eq, Xi, TrDen1
+from read import getFort, getFock, get2e, conMO, getPert
+from ein_ccsdAmps import denom, AmpIt, tau_tildeEq, tauEq, T_interm, t1Eq, t2Eq, E_CCSD, fill_kl, L_Interm, Const_Interm, l1Eq, l2Eq, pert_rhs, tx1Eq, tx2Eq, Xi, TrDen1
 
 #Define molecule
 if len(sys.argv)<2:
@@ -15,8 +15,10 @@ else:
 #Clean pervious outputs
 os.system(f"rm {molecule}.txt")
 
-#Occupied orbitals
-O, V, NB, scfE, Fock, MOCoef, ipbc, k_weights, Core=getFort(molecule)
+# Retrieve various quantities
+O, V, NB, scfE, MOCoef, ipbc, k_weights = getFort(molecule)
+Fock = getFock(molecule,O,V,NB,ipbc,"MO",False,MOCoef)
+#O, V, NB, scfE, Fock, MOCoef, ipbc, k_weights, Core=getFort(molecule)
 O2 = O*2
 V2 = V*2
 NB2 = NB*2
@@ -142,27 +144,27 @@ F_ae,F_mi,F_me,W_mnij,W_abef,W_mbej = T_interm(1,Ok,Vk,Nkp,Fock,t1,t2,IJKL,
                                                ABCD,IABC,IJAB,IABJ,IJKA,
                                                tau_tilde,tau)
 del ABCD
-fae_prod = np.einsum('ia,ia->',np.conjugate(F_ae),F_ae,optimize=True)/Nkp 
-fmi_prod = np.einsum('ia,ia->',np.conjugate(F_mi),F_mi,optimize=True)/Nkp
-fme_prod = np.einsum('ia,ia->',np.conjugate(F_me),F_me,optimize=True)/Nkp
-wabef_prod = np.einsum('ijab,ijab->',np.conjugate(W_abef),W_abef,optimize=True)/(Nkp*Nkp*Nkp)
-wmbej_prod = np.einsum('ijab,ijab->',np.conjugate(W_mbej),W_mbej,optimize=True)/(Nkp*Nkp*Nkp)
-wmnij_prod = np.einsum('ijab,ijab->',np.conjugate(W_mnij),W_mnij,optimize=True)/(Nkp*Nkp*Nkp)
-with open(f"{molecule}.txt","a") as writer:
-  writer.write(f"Products before: Fae Fmi Fme Wabef Wmbej Wmnij\n {fae_prod.real} {fmi_prod.real} {fme_prod.real} {wabef_prod.real} {wmbej_prod.real} {wmnij_prod.real}\n")
+# fae_prod = np.einsum('ia,ia->',np.conjugate(F_ae),F_ae,optimize=True)/Nkp 
+# fmi_prod = np.einsum('ia,ia->',np.conjugate(F_mi),F_mi,optimize=True)/Nkp
+# fme_prod = np.einsum('ia,ia->',np.conjugate(F_me),F_me,optimize=True)/Nkp
+# wabef_prod = np.einsum('ijab,ijab->',np.conjugate(W_abef),W_abef,optimize=True)/(Nkp*Nkp*Nkp)
+# wmbej_prod = np.einsum('ijab,ijab->',np.conjugate(W_mbej),W_mbej,optimize=True)/(Nkp*Nkp*Nkp)
+# wmnij_prod = np.einsum('ijab,ijab->',np.conjugate(W_mnij),W_mnij,optimize=True)/(Nkp*Nkp*Nkp)
+# with open(f"{molecule}.txt","a") as writer:
+#   writer.write(f"Products before: Fae Fmi Fme Wabef Wmbej Wmnij\n {fae_prod.real} {fmi_prod.real} {fme_prod.real} {wabef_prod.real} {wmbej_prod.real} {wmnij_prod.real}\n")
 F_ae,F_mi,W_abef,W_mbej,W_efam,W_iemn = Const_Interm(1,Nkp,t1,t2,tau,IJAB,
                                                      IABJ,IJKA,IABC,F_ae,
                                                      F_mi,F_me,W_mnij,
                                                      W_abef,W_mbej)
-fae_prod = np.einsum('ia,ia->',np.conjugate(F_ae),F_ae,optimize=True)/Nkp 
-fmi_prod = np.einsum('ia,ia->',np.conjugate(F_mi),F_mi,optimize=True)/Nkp
-wabef_prod = np.einsum('ijab,ijab->',np.conjugate(W_abef),W_abef,optimize=True)/(Nkp*Nkp*Nkp)
-wmbej_prod = np.einsum('ijab,ijab->',np.conjugate(W_mbej),W_mbej,optimize=True)/(Nkp*Nkp*Nkp)
-wefam_prod = np.einsum('ijab,ijab->',np.conjugate(W_efam),W_efam,optimize=True)/(Nkp*Nkp*Nkp)
-wiemn_prod = np.einsum('ijab,ijab->',np.conjugate(W_iemn),W_iemn,optimize=True)/(Nkp*Nkp*Nkp)
-with open(f"{molecule}.txt","a") as writer:
-  writer.write(f"Compute constant intermediates, Time: {time.time()-start:.2f}s\n")
-  writer.write(f"Products: Fae Fmi Wabef Wmbej Wefam Wiemn\n {fae_prod.real} {fmi_prod.real} {wabef_prod.real} {wmbej_prod.real} {wefam_prod.real} {wiemn_prod.real}\n")
+# fae_prod = np.einsum('ia,ia->',np.conjugate(F_ae),F_ae,optimize=True)/Nkp 
+# fmi_prod = np.einsum('ia,ia->',np.conjugate(F_mi),F_mi,optimize=True)/Nkp
+# wabef_prod = np.einsum('ijab,ijab->',np.conjugate(W_abef),W_abef,optimize=True)/(Nkp*Nkp*Nkp)
+# wmbej_prod = np.einsum('ijab,ijab->',np.conjugate(W_mbej),W_mbej,optimize=True)/(Nkp*Nkp*Nkp)
+# wefam_prod = np.einsum('ijab,ijab->',np.conjugate(W_efam),W_efam,optimize=True)/(Nkp*Nkp*Nkp)
+# wiemn_prod = np.einsum('ijab,ijab->',np.conjugate(W_iemn),W_iemn,optimize=True)/(Nkp*Nkp*Nkp)
+# with open(f"{molecule}.txt","a") as writer:
+#   writer.write(f"Compute constant intermediates, Time: {time.time()-start:.2f}s\n")
+#   writer.write(f"Products: Fae Fmi Wabef Wmbej Wefam Wiemn\n {fae_prod.real} {fmi_prod.real} {wabef_prod.real} {wmbej_prod.real} {wefam_prod.real} {wiemn_prod.real}\n")
 # exit()
   
 ##########################################################################  
@@ -182,89 +184,204 @@ with open(f"{molecule}.txt","a") as writer:
 l1, l2 = AmpIt("L",molecule,Ok,Vk,Nkp,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,W_abef,
                IABC,IJAB,IABJ,IJKA,tau,W_efam,W_iemn,W_mbej,W_mnij,W_abef,
                F_ae,F_mi,F_me,D1,D2,D1,D2,t1,t2,l1,l2,t1,t2,ipbc)
-exit()
 
-# ##########################################################################  
-# # CCSD LR equations
-# ##########################################################################
-# #
-# # NPert = number of perturbations (3 for dipoles and 6 for quadrupoles)
-# # WPert = frequency of perturbation
-# # if WPErt != 0, there two sets of amplitudes per perturbation Tx(+w) and Tx(-w)
-# # Use same intermediates as in Lambda equations
-# with open(f"{molecule}.txt","a") as writer:
-#   writer.write("****************************************************\n")
-#   writer.write("*           COMPUTING CCSD LR FUNCTION             *\n")
-#   writer.write("****************************************************\n")
-# PertType = "DipE"
-# NP, X_ij, X_ia, X_ab = getpert(O,V,NB,MOCoef,PertType,molecule)
-# # For now, hardwire frequency of 300 nm
-# Wlist = []
-# Wlist.append(0.15187784178412805)
-# tx1 = np.zeros((len(Wlist), NP, 2, O2, V2))
-# tx2 = np.zeros((len(Wlist), NP, 2, O2, O2, V2, V2))
-# tensor = np.zeros((len(Wlist), NP, NP))
-# for iw in range(len(Wlist)):
-#   # Loop over frequencies    
-#   W = Wlist[iw]
-#   NW = 2
-#   if (W==0): NW = 1 
-#   for ip in range(NP):
-#     # Loop over number of pertubations
-#     rhs1, rhs2 = pert_rhs(1, t1, t2, X_ij[ip,:,:], X_ia[ip,:,:], X_ab[ip,:,:])
-#     with open(f"{molecule}.txt","a") as writer:
-#       writer.write(f"\n Perturbation {PertType}-{ip+1}\n")
-#     for ipmw in range(NW):
-#       # Loop over +/-omega
-#       PMW = W
-#       if (ipmw==1): PMW = -W 
-#       with open(f"{molecule}.txt","a") as writer:
-#         writer.write(f"\n Frequency {PMW:+f}\n")
-#       # Reset denominators including frequency term and initialize amplitudes
-#       D1, D2 =  denom(1, O2, V2, Fock, PMW)
-#       tx1[iw,ip,ipmw,:,:] -= rhs1/D1
-#       tx2[iw,ip,ipmw,:,:,:,:] -= rhs2/D2
-#       # Amplitudes loop
-#       tx1[iw,ip,ipmw,:,:], tx2[iw,ip,ipmw,:,:,:,:] = AmpIt("Tx",molecule,O,V,MaxIt,ThrE,ThrA,
-#                                                            scfE,Fock,IJKL,W_abef,IABC,IJAB,
-#                                                            IABJ,IJKA,tau,W_efam,W_iemn,W_mbej,
-#                                                            W_mnij,W_abef,F_ae,F_mi,F_me,rhs1,
-#                                                            rhs2,D1,D2,t1,t2,l1,l2,
-#                                                            tx1[iw,ip,ipmw,:,:],
-#                                                            tx2[iw,ip,ipmw,:,:,:,:])
-#   #
-#   # Now that we have all the Tx amplitudes for this W, we can compute
-#   # the corresponding Xi amplitudes and contract with all other Tx
-#   # amplitudes, and the transition 1PDM-like rho1 and contract with
-#   # the perturbation integrals
-#   #
-#   start0=time.time()
-#   # Reset denominators
-#   D1, D2 =  denom(1, O2, V2, Fock, 0)
-#   for ip in range(NP):
-#     # Evaluate Xi amplitudes 
-#     Xi1, Xi2 = Xi(1,tx1[iw,ip,0,:,:],tx2[iw,ip,0,:,:,:,:],
-#                   l1,l2,t1,IABC,IJAB,IJKA,F_ae,F_mi,F_me,W_mbej,D2)
-#     for ipa in range(NP):
-#       # Contract Xi(ip) with Tx(ipa)
-#       tensor[iw,ip,ipa] -= np.einsum('ia,ia->',Xi1,tx1[iw,ipa,1,:,:],optimize=True) 
-#       tensor[iw,ip,ipa] -= 0.25*np.einsum('ijab,ijab->',Xi2,tx2[iw,ipa,1,:,:,:,:],optimize=True)
-#     del Xi1, Xi2
-#     for ipmw in range(NW):
-#       # Loop over +/-omega
-#       # Evaluate 1PDM
-#       rho1 = TrDen1(1,O2,NB2,tx1[iw,ip,ipmw,:,:],tx2[iw,ip,ipmw,:,:,:,:],l1,l2,t1,t2)
-#       for ipa in range(NP):
-#         # Contract 1PDM(ip) with Pert(ipa)
-#         tensor[iw,ip,ipa] += np.einsum('ij,ij->',X_ij[ipa,:,:],rho1[:O2,:O2],optimize=True) 
-#         tensor[iw,ip,ipa] += np.einsum('ia,ia->',X_ia[ipa,:,:],rho1[:O2,O2:],optimize=True)   
-#         tensor[iw,ip,ipa] += np.einsum('ab,ab->',X_ab[ipa,:,:],rho1[O2:,O2:],optimize=True)   
-#   # Print the tensor for frequency W
-#   with open(f"{molecule}.txt","a") as writer:
-#     writer.write(f"\n DipE(LG)-DipE(LG) Polarizability in a.u. for W = {W:.6f} a.u.\n")
-#   for ip in range(NP):
-#     with open(f"{molecule}.txt","a") as writer:
-#       writer.write(f" {ip+1} {tensor[iw,ip,0]:+.6f} {tensor[iw,ip,1]:+.6f} {tensor[iw,ip,2]:+.6f}\n")
-#   with open(f"{molecule}.txt","a") as writer:
-#     writer.write(f"Time: {time.time()-start:.2f}\n")
+##########################################################################  
+# CCSD LR equations
+##########################################################################
+#
+# NPert = number of perturbations (3 for dipoles and 6 for quadrupoles)
+# WPert = frequency of perturbation
+# if WPErt != 0, there two sets of amplitudes per perturbation Tx(+w) and Tx(-w)
+# Use same intermediates as in Lambda equations
+with open(f"{molecule}.txt","a") as writer:
+  writer.write("****************************************************\n")
+  writer.write("*           COMPUTING CCSD LR FUNCTION             *\n")
+  writer.write("****************************************************\n")
+PertType = "DipE"
+NP, X_ij, X_ia, X_ab = getPert(O,V,NB,ipbc,MOCoef,Fock,PertType,molecule)
+xij_prod = np.einsum('ia,ia->',np.conjugate(X_ij[0,:,:]),X_ij[0,:,:],optimize=True)/Nkp 
+xia_prod = np.einsum('ia,ia->',np.conjugate(X_ia[0,:,:]),X_ia[0,:,:],optimize=True)/Nkp 
+xab_prod = np.einsum('ia,ia->',np.conjugate(X_ab[0,:,:]),X_ab[0,:,:],optimize=True)/Nkp 
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Compute constant intermediates, Time: {time.time()-start:.2f}s\n")
+  writer.write(f"Products Pert-x: {xij_prod.real} {xia_prod.real} {xab_prod.real}\n")
+xij_prod = np.einsum('ia,ia->',np.conjugate(X_ij[1,:,:]),X_ij[1,:,:],optimize=True)/Nkp 
+xia_prod = np.einsum('ia,ia->',np.conjugate(X_ia[1,:,:]),X_ia[1,:,:],optimize=True)/Nkp 
+xab_prod = np.einsum('ia,ia->',np.conjugate(X_ab[1,:,:]),X_ab[1,:,:],optimize=True)/Nkp 
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Compute constant intermediates, Time: {time.time()-start:.2f}s\n")
+  writer.write(f"Products Pert-y: {xij_prod.real} {xia_prod.real} {xab_prod.real}\n")
+xij_prod = np.einsum('ia,ia->',np.conjugate(X_ij[2,:,:]),X_ij[2,:,:],optimize=True)/Nkp 
+xia_prod = np.einsum('ia,ia->',np.conjugate(X_ia[2,:,:]),X_ia[2,:,:],optimize=True)/Nkp 
+xab_prod = np.einsum('ia,ia->',np.conjugate(X_ab[2,:,:]),X_ab[2,:,:],optimize=True)/Nkp 
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Compute constant intermediates, Time: {time.time()-start:.2f}s\n")
+  writer.write(f"Products Pert-z: {xij_prod.real} {xia_prod.real} {xab_prod.real}\n")
+#exit()
+# For now, hardwire frequency of 300 nm
+Wlist = []
+#Wlist.append(0.0)
+Wlist.append(0.15187784178412805)
+tensor = np.zeros((len(Wlist), NP, NP),dtype=Fock.dtype)
+for iw in range(len(Wlist)):
+  # Loop over frequencies    
+  W = Wlist[iw]
+  NW = 2
+  tx1 = np.zeros((NP,2,O2k,V2k),dtype=Fock.dtype)
+  tx2 = np.zeros((NP,2,O2k,O2k,V2k,V2k),dtype=Fock.dtype)
+  MaxX = np.zeros((NP))
+  if (W==0): NW = 1 
+#  for ip in range(2):
+  for ip in range(NP):
+    # Loop over number of non-zero pertubations
+    MaxIJr = np.max(abs(X_ij[ip,:,:].real))
+    MaxIJi = np.max(abs(X_ij[ip,:,:].imag))
+    MaxIAr = np.max(abs(X_ia[ip,:,:].real))
+    MaxIAi = np.max(abs(X_ia[ip,:,:].imag))
+    MaxABr = np.max(abs(X_ab[ip,:,:].real))
+    MaxABi = np.max(abs(X_ab[ip,:,:].imag))
+    MaxX[ip] = max(MaxIJr,MaxIJi,MaxIAr,MaxIAi,MaxABr,MaxABi)
+    if(MaxX[ip] > 1e-15):
+      rhs1, rhs2, rhs1a, rhs1b, rhs1c = pert_rhs(1, Nkp, O2k, V2k, t1, t2, X_ij[ip,:,:], X_ia[ip,:,:], X_ab[ip,:,:])
+      rhs1_prod = np.einsum('ia,ia->',np.conjugate(rhs1),rhs1,optimize=True)/Nkp 
+      rhs2_prod = np.einsum('ijab,ijab->',np.conjugate(rhs2),rhs2,optimize=True)/(Nkp*Nkp*Nkp)
+      rhs1a_prod = np.einsum('ia,ia->',np.conjugate(rhs1a),rhs1a,optimize=True)/Nkp 
+      rhs1b_prod = np.einsum('ia,ia->',np.conjugate(rhs1b),rhs1b,optimize=True)/Nkp 
+      rhs1c_prod = np.einsum('ia,ia->',np.conjugate(rhs1c),rhs1c,optimize=True)/Nkp
+      rhs1d = rhs1a - rhs1b
+      rhs1e = rhs1a - rhs1c
+      rhs1d_prod = np.einsum('ia,ia->',np.conjugate(rhs1d),rhs1d,optimize=True)/Nkp 
+      rhs1e_prod = np.einsum('ia,ia->',np.conjugate(rhs1e),rhs1e,optimize=True)/Nkp
+    
+      with open(f"{molecule}.txt","a") as writer:
+        writer.write(f"Compute constant intermediates, Time: {time.time()-start:.2f}s\n")
+        writer.write(f"Products Rhs: {rhs1_prod.real} {rhs2_prod.real} {rhs1a_prod.real} {rhs1b_prod.real}  {rhs1c_prod.real} {rhs1d_prod.real}  {rhs1e_prod.real}\n")
+      print(f"rhs1a rhs1b\n")
+      #     if(ipbc):
+      #       rhs1a = rhs1a.reshape(Nkp,O2,Nkp,V2)
+      #       rhs1b = rhs1b.reshape(Nkp,O2,Nkp,V2)
+      #       rhs1c = rhs1c.reshape(Nkp,O2,Nkp,V2)
+      #       sum1a = 0
+      #       sum1b = 0
+      #       sum1c = 0
+      #       for k in range(Nkp):
+      #         for h in range(Nkp):
+      #           for i in range(O2):
+      #             for a in range (V2):
+      #               if(abs(rhs1a[k,i,h,a].real) > 1e-12 or abs(rhs1b[k,i,h,a].real) > 1e-12 or abs(rhs1a[k,i,h,a].imag) > 1e-12 or abs(rhs1b[k,i,h,a].imag) > 1e-12 ):
+      #                 print(f"{k+1},{i+1},{h+1},{a+1} {rhs1a[k,i,h,a]:.6e} {rhs1b[k,i,h,a]:.6e} {rhs1c[k,i,h,a]:.6e} ")
+      #               if(k == h and i ==1 and a == 1):
+      #                 sum1a += rhs1a[k,i,h,a]
+      #                 sum1b += rhs1b[k,i,h,a]
+      #                 sum1c += rhs1c[k,i,h,a]
+      #         print(f"sum1a={sum1a/Nkp} sum1b={sum1b/Nkp} sum1c={sum1c/Nkp} ")
+      #     else:
+      #       for i in range(O2k):
+      #         for a in range (V2k):
+      #           if(abs(rhs1a[i,a]) > 1e-12 or abs(rhs1b[i,a]) > 1e-12 ):
+      #             print(f"{i+1},{a+1} {rhs1a[i,a]:.6e} {rhs1b[i,a]:.6e} {rhs1c[i,a]:.6e} ")
+      # #    exit()
+      with open(f"{molecule}.txt","a") as writer:
+        writer.write(f"\n Perturbation {PertType}-{ip+1}\n")
+      #    for ipmw in range(1):
+      for ipmw in range(NW):
+        # Loop over +/-omega
+        PMW = W
+        if (ipmw==1): PMW = -W 
+        with open(f"{molecule}.txt","a") as writer:
+          writer.write(f"\n Frequency {PMW:+f}\n")
+        # Reset denominators including frequency term and initialize amplitudes
+        D1, D2 =  denom(1, O2, V2, kp, Fock, PMW)
+        # tx1[ip,ipmw,:,:] = np.copy(t1)
+        tx1[ip,ipmw,:,:] -= rhs1/D1.real
+        #      tx1[ip,ipmw,:,:] -= rhs1
+        # tx2[ip,ipmw,:,:,:,:] = np.copy(t2)
+        tx2[ip,ipmw,:,:,:,:] -= rhs2/D2.real
+        t1_prod = np.einsum('ia,ia->',np.conjugate(t1),t1,optimize=True)/Nkp 
+        rhs1_prod = np.einsum('ia,ia->',np.conjugate(rhs1),tx1[ip,ipmw,:,:],optimize=True)/Nkp 
+        rhs2_prod = np.einsum('ijab,ijab->',np.conjugate(rhs2),tx2[ip,ipmw,:,:,:,:],optimize=True)/(Nkp*Nkp*Nkp)
+        with open(f"{molecule}.txt","a") as writer:
+          writer.write(f"Compute constant intermediates, Time: {time.time()-start:.2f}s\n")
+          writer.write(f"Products Tx: {t1_prod.real} {rhs1_prod.real} {rhs2_prod.real}\n")
+    
+        # Amplitudes loop
+        tx1[ip,ipmw,:,:], tx2[ip,ipmw,:,:,:,:] = AmpIt("Tx",molecule,Ok,Vk,Nkp,MaxIt,ThrE,
+                                                       ThrA,scfE,Fock,IJKL,W_abef,IABC,
+                                                       IJAB,IABJ,IJKA,tau,W_efam,W_iemn,
+                                                       W_mbej,W_mnij,W_abef,F_ae,F_mi,
+                                                       F_me,rhs1,rhs2,D1,D2,t1,t2,l1,l2,
+                                                       tx1[ip,ipmw,:,:],
+                                                       tx2[ip,ipmw,:,:,:,:],ipbc)
+  #
+  # Now that we have all the Tx amplitudes for this W, we can compute
+  # the corresponding Xi amplitudes and contract with all other Tx
+  # amplitudes, and the transition 1PDM-like rho1 and contract with
+  # the perturbation integrals
+  #
+  start0=time.time()
+  # Reset denominators
+  D1, D2 =  denom(1, O2, V2, kp, Fock, 0)
+#  for ip in range(2):
+  for ip in range(NP):
+    if(MaxX[ip] > 1e-15):
+      # Evaluate Xi amplitudes 
+      Xi1, Xi2 = Xi(1,Nkp,tx1[ip,0,:,:],tx2[ip,0,:,:,:,:],l1,l2,t1,IABC,IJAB,IJKA,F_ae,F_mi,
+                    F_me,W_mbej,D2)
+      Xi1_prod = np.einsum('ia,ia->',np.conjugate(Xi1),Xi1,optimize=True)/Nkp 
+      Xi2_prod = np.einsum('ijab,ijab->',np.conjugate(Xi2),Xi2,optimize=True)/(Nkp*Nkp*Nkp)
+      with open(f"{molecule}.txt","a") as writer:
+        writer.write(f"Xi Products: {Xi1_prod.real} {Xi2_prod.real}\n")
+      #    for ipa in range(2):
+      for ipa in range(NP):
+        # Contract Xi(ip) with Tx(ipa)
+        tensor[iw,ip,ipa] -= np.einsum('ia,ia->',Xi1,np.conjugate(tx1[ipa,1,:,:]),optimize=True)/Nkp 
+        tensor[iw,ip,ipa] -= 0.25*np.einsum('ijab,ijab->',Xi2,np.conjugate(tx2[ipa,1,:,:,:,:]),optimize=True)/NkpC
+        ten_prod1 = -np.einsum('ia,ia->',Xi1,np.conjugate(tx1[ipa,1,:,:]),optimize=True)/Nkp
+        ten_prod2 = -0.25*np.einsum('ijab,ijab->',Xi2,np.conjugate(tx2[ipa,1,:,:,:,:]),optimize=True)/(Nkp*Nkp*Nkp)
+        with open(f"{molecule}.txt","a") as writer:
+          writer.write(f"Tensor-Xi Products: {ip+1} {ipa+1} {ten_prod1} {ten_prod2} {ten_prod1+ten_prod2} \n")
+      del Xi1, Xi2
+      for ipmw in range(NW):
+        # Loop over +/-omega
+        # Evaluate 1PDM
+        rho1 = TrDen1(1,O2k,NB2k,Nkp,tx1[ip,ipmw,:,:],tx2[ip,ipmw,:,:,:,:],l1,l2,t1,t2)
+        rho1ij_prod = np.einsum('ij,ij->',np.conjugate(rho1[:O2k,:O2k]),rho1[:O2k,:O2k],optimize=True)/Nkp 
+        rho1ia_prod = np.einsum('ij,ij->',np.conjugate(rho1[:O2k,O2k:]),rho1[:O2k,O2k:],optimize=True)/Nkp 
+        rho1ab_prod = np.einsum('ij,ij->',np.conjugate(rho1[O2k:,O2k:]),rho1[O2k:,O2k:],optimize=True)/Nkp 
+        tp1 = np.einsum('ij,ij->',X_ij[0,:,:],rho1[:O2k,:O2k],optimize=True)/Nkp 
+        tp2 = np.einsum('ia,ia->',X_ia[0,:,:],rho1[:O2k,O2k:],optimize=True)/Nkp   
+        tp3 = np.einsum('ab,ab->',X_ab[0,:,:],rho1[O2k:,O2k:],optimize=True)/Nkp   
+        tp4 = np.einsum('ij,ij->',np.conjugate(X_ij[0,:,:]),rho1[:O2k,:O2k],optimize=True)/Nkp 
+        tp5 = np.einsum('ia,ia->',np.conjugate(X_ia[0,:,:]),rho1[:O2k,O2k:],optimize=True)/Nkp   
+        tp6 = np.einsum('ab,ab->',np.conjugate(X_ab[0,:,:]),rho1[O2k:,O2k:],optimize=True)/Nkp   
+        tp7 = np.einsum('ij,ij->',X_ij[0,:,:],np.conjugate(rho1[:O2k,:O2k]),optimize=True)/Nkp 
+        tp8 = np.einsum('ia,ia->',X_ia[0,:,:],np.conjugate(rho1[:O2k,O2k:]),optimize=True)/Nkp   
+        tp9 = np.einsum('ab,ab->',X_ab[0,:,:],np.conjugate(rho1[O2k:,O2k:]),optimize=True)/Nkp   
+        with open(f"{molecule}.txt","a") as writer:
+          writer.write(f"Compute constant intermediates, Time: {time.time()-start:.2f}s\n")
+          writer.write(f"Products Rho: {rho1ij_prod.real} {rho1ia_prod.real} {rho1ab_prod.real}\n")
+          writer.write(f"Products t1-3: {tp1.real} {tp2.real} {tp3.real} {(tp1+tp3).real} \n")
+          writer.write(f"Products t4-6: {tp4.real} {tp5.real} {tp6.real} {(tp4+tp6).real} \n")
+          writer.write(f"Products t7-9: {tp7.real} {tp8.real} {tp9.real} {(tp7+tp9).real} \n")
+        #      exit()
+        #      for ipa in range(2):
+        for ipa in range(NP):
+          # Contract 1PDM(ip) with Pert(ipa)
+          tensor[iw,ip,ipa] += np.einsum('ij,ij->',np.conjugate(X_ij[ipa,:,:]),rho1[:O2k,:O2k],optimize=True)/Nkp 
+          tensor[iw,ip,ipa] += np.einsum('ia,ia->',np.conjugate(X_ia[ipa,:,:]),rho1[:O2k,O2k:],optimize=True)/Nkp   
+          tensor[iw,ip,ipa] += np.einsum('ab,ab->',np.conjugate(X_ab[ipa,:,:]),rho1[O2k:,O2k:],optimize=True)/Nkp   
+          ten_prod1 = np.einsum('ij,ij->',np.conjugate(X_ij[ipa,:,:]),rho1[:O2k,:O2k],optimize=True)/Nkp 
+          ten_prod2 = np.einsum('ia,ia->',np.conjugate(X_ia[ipa,:,:]),rho1[:O2k,O2k:],optimize=True)/Nkp   
+          ten_prod3 = np.einsum('ab,ab->',np.conjugate(X_ab[ipa,:,:]),rho1[O2k:,O2k:],optimize=True)/Nkp   
+          with open(f"{molecule}.txt","a") as writer:
+            writer.write(f"Tensor-Rho Products: {ip+1} {ipa+1} {ten_prod1} {ten_prod2}  {ten_prod3} {ten_prod1+ten_prod2+ten_prod3}\n")
+  # Print the tensor for frequency W
+  with open(f"{molecule}.txt","a") as writer:
+    writer.write(f"\n DipE(LG)-DipE(LG) Polarizability in a.u. for W = {W:.6f} a.u.\n")
+  for ip in range(NP):
+    with open(f"{molecule}.txt","a") as writer:
+      writer.write(f" {ip+1} {tensor[iw,ip,0].real} {tensor[iw,ip,1].real} {tensor[iw,ip,2].real}\n")
+      # writer.write(f" {ip+1} {tensor[iw,ip,0]:+.6f} {tensor[iw,ip,1]:+.6f} {tensor[iw,ip,2]:+.6f}\n")
+  with open(f"{molecule}.txt","a") as writer:
+    writer.write(f"Time: {time.time()-start:.2f}\n")
                

@@ -3,11 +3,12 @@ import os
 import sys
 import re
 import time
+from scipy.constants import angstrom, physical_constants
 np.set_printoptions(precision=16,threshold=sys.maxsize,floatmode='fixed')
 # import readgau
 # from readgau import orb
 from ein_ccsdAmps import fourier, basis_tran, fill_kl, square_m
-from ein_ccsdAmps import denom
+from ein_ccsdAmps import denom, DEk
 sys.path.insert(0, '/Volumes/gaussian/gdv_j30p/')
 np.set_printoptions(precision=16,threshold=sys.maxsize,floatmode='fixed')
 from gauopen import QCBinAr as qcb
@@ -17,8 +18,8 @@ from gauopen import QCBinAr as qcb
 #Get O, NB, SCF energy, MO coefficients, Orbital energies ################
 ##########################################################################
 
-def getFort(molecule):
-  mol=sys.argv[1]
+def getFort(mol):
+  # mol=sys.argv[1]
   #
   #O, V, NB
   O=0
@@ -120,7 +121,9 @@ def getFort(molecule):
     text[i][:] = [x for x in text[i] if x]
   MOCoef = []
   if(ipbc):
-    # PBC 
+    # PBC
+    # baf = qcb.QCBinAr(file=f"{mol}.baf")
+    # MOCoef=baf.matlist["PBC ALPHA ORBITALS"].array
     for i in range(len(text)):
       for j in range(len(text[i])):
         MOCoef.append(complex(text[i][j]))
@@ -158,135 +161,135 @@ def getFort(molecule):
   #     MOCoef[ind2,ind1] = float(text[i][j])
   # MOCoef = np.array(MOCoef)
   #
-  #Fock
-  if(ipbc):
-    # PBC calculation
-    with open(f"{mol}_txts/fock.txt","r") as reader:
-      text=[]
-      for line in reader:
-        text.append(line.split())
-    # Remove parentheses
-    for i in range(len(text)):
-      for j in range(len(text[i])):
-        text[i][j] = text[i][j].replace("[","")
-        text[i][j] = text[i][j].replace("]","")
-    # Remove empty slots
-    for i in range(len(text)):
-      text[i][:] = [x for x in text[i] if x]
-    fock_r = []
-    for i in range(len(text)):
-      for j in range(len(text[i])):
-        fock_r.append(float(text[i][j]))
-    nmtpbc = ipbc[1]
-    ntt = (NB*(NB+1))//2
-    kp, l_list = fill_kl(ipbc)
-    Nkp = len(kp)
-    fock_r = np.array(fock_r).reshape((nmtpbc,ntt))
-    fock_k_lt = fourier("Dir",ipbc,fock_r)
-    FockA = basis_tran("Dir",True,False,"Herm",NB,Nkp,MOCoef,fock_k_lt)
-    Fock = np.zeros((Nkp,NB*2,Nkp,NB*2),dtype=complex)
-    for k in range(Nkp):
-      # Fill out the alpha and beta blocks
-      Fock[k,:O,k,:O] = FockA[k,:O,:O]
-      Fock[k,O:2*O,k,O:2*O] = FockA[k,:O,:O]
-      Fock[k,2*O:2*O+V,k,2*O:2*O+V] = FockA[k,O:,O:]
-      Fock[k,2*O+V:,k,2*O+V:] = FockA[k,O:,O:]
-    Fock = Fock.reshape((Nkp*NB*2,Nkp*NB*2))
-    del fock_r, fock_k_lt, FockA
-    # print(f" pbc fock {Nkp} {4*NB*NB}, {len(Fock)}: \n {Fock}")
-    # exit()
-  else:
-    # Molecular calculation
-    OE=[]
-    with open(f"{mol}_txts/orbE.txt","r") as reader:
-      text=[]
-      for line in reader:
-        text.append(line.split())
-    # Remove parentheses
-    for i in range(len(text)):
-      for j in range(len(text[i])):
-        text[i][j] = text[i][j].replace("[","")
-        text[i][j] = text[i][j].replace("]","")
-    # Remove empty slots
-    for i in range(len(text)):
-      text[i][:] = [x for x in text[i] if x]
-    for i in range(len(text)):
-      for j in range(len(text[i])):
-        OE.append(float(text[i][j]))
-    OE=np.array(OE)
-    FockD=np.zeros((NB*2))
-    FockD[:O] = OE[:O]
-    FockD[O:2*O] = OE[:O]
-    FockD[2*O:2*O+V] = OE[O:NB]
-    FockD[2*O+V:] = OE[O:NB] 
-    Fock=np.zeros((NB*2,NB*2))
-    Fock[:,:]=np.diag(FockD)
-  #
-  # Core Hamiltonian
-  if(ipbc):
-    # PBC calculation
-    with open(f"{mol}_txts/core.txt","r") as reader:
-      text=[]
-      for line in reader:
-        text.append(line.split())
-    # Remove parentheses
-    for i in range(len(text)):
-      for j in range(len(text[i])):
-        text[i][j] = text[i][j].replace("[","")
-        text[i][j] = text[i][j].replace("]","")
-    # Remove empty slots
-    for i in range(len(text)):
-      text[i][:] = [x for x in text[i] if x]
-    core_r = []
-    for i in range(len(text)):
-      for j in range(len(text[i])):
-        core_r.append(float(text[i][j]))
-    nmtpbc = ipbc[1]
-    ntt = (NB*(NB+1))//2
-    kp, l_list = fill_kl(ipbc)
-    Nkp = len(kp)
-    core_r = np.array(core_r).reshape((nmtpbc,ntt))
-    core_k_lt = fourier("Dir",ipbc,core_r)
-    CoreA = basis_tran("Dir",True,False,"Herm",NB,Nkp,MOCoef,core_k_lt)
-    Core = np.zeros((Nkp,NB*2,NB*2),dtype=complex)
-    for k in range(Nkp):
-      # Fill out the alpha and beta blocks
-      Core[k,:O,:O] = CoreA[k,:O,:O]
-      Core[k,O:2*O,O:2*O] = CoreA[k,:O,:O]
-      Core[k,2*O:2*O+V,2*O:2*O+V] = CoreA[k,O:,O:]
-      Core[k,2*O+V:,2*O+V:] = CoreA[k,O:,O:]
-    del core_r, core_k_lt, CoreA
-  else:
-    # Molecular calculation
-    corel=[]
-    with open(f"{mol}_txts/core.txt","r") as reader:
-      text=[]
-      for line in reader:
-        text.append(line.split())
-    # Remove parentheses
-    for i in range(len(text)):
-      for j in range(len(text[i])):
-        text[i][j] = text[i][j].replace("[","")
-        text[i][j] = text[i][j].replace("]","")
-    # Remove empty slots
-    for i in range(len(text)):
-      text[i][:] = [x for x in text[i] if x]
-    for i in range(len(text)):
-      for j in range(len(text[i])):
-        corel.append(float(text[i][j]))
-    corel=np.array(corel)
-    # symmetrize and transform to MO basis
-    coresq = np.zeros((NB,NB))
-    coresq = square_m(NB,True,"Sym",corel,coresq)
-    temp = np.einsum("in,nm->im", MOCoef, coresq, optimize=True)
-    coresq = np.einsum("jm,im->ij", MOCoef, temp, optimize=True)
-    # Fill out the alpha and beta blocks
-    Core = np.zeros((2*NB,2*NB))
-    Core[:O,:O] = coresq[:O,:O]
-    Core[O:2*O,O:2*O] = coresq[:O,:O]
-    Core[2*O:2*O+V,2*O:2*O+V] = coresq[O:,O:]
-    Core[2*O+V:,2*O+V:] = coresq[O:,O:]
-    del corel, coresq
+  # #Fock
+  # if(ipbc):
+  #   # PBC calculation
+  #   with open(f"{mol}_txts/fock.txt","r") as reader:
+  #     text=[]
+  #     for line in reader:
+  #       text.append(line.split())
+  #   # Remove parentheses
+  #   for i in range(len(text)):
+  #     for j in range(len(text[i])):
+  #       text[i][j] = text[i][j].replace("[","")
+  #       text[i][j] = text[i][j].replace("]","")
+  #   # Remove empty slots
+  #   for i in range(len(text)):
+  #     text[i][:] = [x for x in text[i] if x]
+  #   fock_r = []
+  #   for i in range(len(text)):
+  #     for j in range(len(text[i])):
+  #       fock_r.append(float(text[i][j]))
+  #   nmtpbc = ipbc[1]
+  #   ntt = (NB*(NB+1))//2
+  #   kp, l_list = fill_kl(ipbc)
+  #   Nkp = len(kp)
+  #   fock_r = np.array(fock_r).reshape((nmtpbc,ntt))
+  #   fock_k_lt = fourier("Dir",ipbc,fock_r,False)
+  #   FockA = basis_tran("Dir",True,False,"Herm",NB,Nkp,MOCoef,fock_k_lt)
+  #   Fock = np.zeros((Nkp,NB*2,Nkp,NB*2),dtype=complex)
+  #   for k in range(Nkp):
+  #     # Fill out the alpha and beta blocks
+  #     Fock[k,:O,k,:O] = FockA[k,:O,:O]
+  #     Fock[k,O:2*O,k,O:2*O] = FockA[k,:O,:O]
+  #     Fock[k,2*O:2*O+V,k,2*O:2*O+V] = FockA[k,O:,O:]
+  #     Fock[k,2*O+V:,k,2*O+V:] = FockA[k,O:,O:]
+  #   Fock = Fock.reshape((Nkp*NB*2,Nkp*NB*2))
+  #   del fock_r, fock_k_lt, FockA
+  #   # print(f" pbc fock {Nkp} {4*NB*NB}, {len(Fock)}: \n {Fock}")
+  #   # exit()
+  # else:
+  #   # Molecular calculation
+  #   OE=[]
+  #   with open(f"{mol}_txts/orbE.txt","r") as reader:
+  #     text=[]
+  #     for line in reader:
+  #       text.append(line.split())
+  #   # Remove parentheses
+  #   for i in range(len(text)):
+  #     for j in range(len(text[i])):
+  #       text[i][j] = text[i][j].replace("[","")
+  #       text[i][j] = text[i][j].replace("]","")
+  #   # Remove empty slots
+  #   for i in range(len(text)):
+  #     text[i][:] = [x for x in text[i] if x]
+  #   for i in range(len(text)):
+  #     for j in range(len(text[i])):
+  #       OE.append(float(text[i][j]))
+  #   OE=np.array(OE)
+  #   FockD=np.zeros((NB*2))
+  #   FockD[:O] = OE[:O]
+  #   FockD[O:2*O] = OE[:O]
+  #   FockD[2*O:2*O+V] = OE[O:NB]
+  #   FockD[2*O+V:] = OE[O:NB] 
+  #   Fock=np.zeros((NB*2,NB*2))
+  #   Fock[:,:]=np.diag(FockD)
+  # #
+  # # Core Hamiltonian
+  # if(ipbc):
+  #   # PBC calculation
+  #   with open(f"{mol}_txts/core.txt","r") as reader:
+  #     text=[]
+  #     for line in reader:
+  #       text.append(line.split())
+  #   # Remove parentheses
+  #   for i in range(len(text)):
+  #     for j in range(len(text[i])):
+  #       text[i][j] = text[i][j].replace("[","")
+  #       text[i][j] = text[i][j].replace("]","")
+  #   # Remove empty slots
+  #   for i in range(len(text)):
+  #     text[i][:] = [x for x in text[i] if x]
+  #   core_r = []
+  #   for i in range(len(text)):
+  #     for j in range(len(text[i])):
+  #       core_r.append(float(text[i][j]))
+  #   nmtpbc = ipbc[1]
+  #   ntt = (NB*(NB+1))//2
+  #   kp, l_list = fill_kl(ipbc)
+  #   Nkp = len(kp)
+  #   core_r = np.array(core_r).reshape((nmtpbc,ntt))
+  #   core_k_lt = fourier("Dir",ipbc,core_r,False)
+  #   CoreA = basis_tran("Dir",True,False,"Herm",NB,Nkp,MOCoef,core_k_lt)
+  #   Core = np.zeros((Nkp,NB*2,NB*2),dtype=complex)
+  #   for k in range(Nkp):
+  #     # Fill out the alpha and beta blocks
+  #     Core[k,:O,:O] = CoreA[k,:O,:O]
+  #     Core[k,O:2*O,O:2*O] = CoreA[k,:O,:O]
+  #     Core[k,2*O:2*O+V,2*O:2*O+V] = CoreA[k,O:,O:]
+  #     Core[k,2*O+V:,2*O+V:] = CoreA[k,O:,O:]
+  #   del core_r, core_k_lt, CoreA
+  # else:
+  #   # Molecular calculation
+  #   corel=[]
+  #   with open(f"{mol}_txts/core.txt","r") as reader:
+  #     text=[]
+  #     for line in reader:
+  #       text.append(line.split())
+  #   # Remove parentheses
+  #   for i in range(len(text)):
+  #     for j in range(len(text[i])):
+  #       text[i][j] = text[i][j].replace("[","")
+  #       text[i][j] = text[i][j].replace("]","")
+  #   # Remove empty slots
+  #   for i in range(len(text)):
+  #     text[i][:] = [x for x in text[i] if x]
+  #   for i in range(len(text)):
+  #     for j in range(len(text[i])):
+  #       corel.append(float(text[i][j]))
+  #   corel=np.array(corel)
+  #   # symmetrize and transform to MO basis
+  #   coresq = np.zeros((NB,NB))
+  #   coresq = square_m(NB,True,"Sym",corel,coresq)
+  #   temp = np.einsum("in,nm->im", MOCoef, coresq, optimize=True)
+  #   coresq = np.einsum("jm,im->ij", MOCoef, temp, optimize=True)
+  #   # Fill out the alpha and beta blocks
+  #   Core = np.zeros((2*NB,2*NB))
+  #   Core[:O,:O] = coresq[:O,:O]
+  #   Core[O:2*O,O:2*O] = coresq[:O,:O]
+  #   Core[2*O:2*O+V,2*O:2*O+V] = coresq[O:,O:]
+  #   Core[2*O+V:,2*O+V:] = coresq[O:,O:]
+  #   del corel, coresq
     # print(f" pbc fock {Nkp} {4*NB*NB}, {len(Fock)}: {Fock}")
     # exit()
   # bad=[]
@@ -304,8 +307,173 @@ def getFort(molecule):
   # MOCoef=np.transpose(np.array(MOCoef))
   #Dipole integrals length gauge
 #  
-  return O, V, NB, scfE, Fock, MOCoef, ipbc, k_weights, Core
+#  return O, V, NB, scfE, Fock, MOCoef, ipbc, k_weights, Core
+  return O, V, NB, scfE, MOCoef, ipbc, k_weights
 
+########################################################
+# Routine the read the Overlap.
+########################################################
+def getOvl(mol,O,V,NB,ipbc,basis,dk,MOCoef):
+  # basis: "AO" or "MO"
+  # dk: = F: regular MO(k) basis, = T: dS/dK in MO(k) basis
+  with open(f"{mol}_txts/overlap.txt","r") as reader:
+    text=[]
+    for line in reader:
+      text.append(line.split())
+  # Remove parentheses
+  for i in range(len(text)):
+    for j in range(len(text[i])):
+      text[i][j] = text[i][j].replace("[","")
+      text[i][j] = text[i][j].replace("]","")
+  # Remove empty slots
+  for i in range(len(text)):
+    text[i][:] = [x for x in text[i] if x]
+  Ovl_r = []
+  for i in range(len(text)):
+    for j in range(len(text[i])):
+      Ovl_r.append(float(text[i][j]))
+  if(ipbc):
+    # PBC calculation
+    nmtpbc = ipbc[1]
+    ntt = (NB*(NB+1))//2
+    Ovl_r = np.array(Ovl_r).reshape((nmtpbc,ntt))
+    if(basis == "AO"):
+      Ovl = np.copy(Ovl_r)
+      del Ovl_r
+    elif(basis == "MO"):
+      kp, l_list = fill_kl(ipbc)
+      Nkp = len(kp)
+      Ovl_k_lt = fourier("Dir",ipbc,Ovl_r,dk)
+      OvlA = basis_tran("Dir",True,False,"Herm",NB,Nkp,MOCoef,Ovl_k_lt)
+      Ovl = np.zeros((Nkp,NB*2,Nkp,NB*2),dtype=complex)
+      for k in range(Nkp):
+        # Fill out the alpha and beta blocks
+        # oa-oa
+        Ovl[k,:O,k,:O] = OvlA[k,:O,:O]
+        # ob-ob
+        Ovl[k,O:2*O,k,O:2*O] = OvlA[k,:O,:O]
+        # va-va
+        Ovl[k,2*O:2*O+V,k,2*O:2*O+V] = OvlA[k,O:,O:]
+        # vb-vb
+        Ovl[k,2*O+V:,k,2*O+V:] = OvlA[k,O:,O:]
+        # oa-va
+        Ovl[k,:O,k,2*O:2*O+V] = OvlA[k,:O,O:]
+        # va-oa
+        Ovl[k,2*O:2*O+V,k,:O] = OvlA[k,O:,:O]
+        # ob-vb
+        Ovl[k,O:2*O,k,2*O+V:] = OvlA[k,:O,O:]
+        # vb-ob
+        Ovl[k,2*O+V:,k,O:2*O] = OvlA[k,O:,:O]
+        # Ovl[k,:O,k,:O] = OvlA[k,:O,:O]
+        # Ovl[k,O:2*O,k,O:2*O] = OvlA[k,:O,:O]
+        # Ovl[k,2*O:2*O+V,k,2*O:2*O+V] = OvlA[k,O:,O:]
+        # Ovl[k,2*O+V:,k,2*O+V:] = OvlA[k,O:,O:]
+      del Ovl_r, Ovl_k_lt, OvlA
+      Ovl = Ovl.reshape((Nkp*NB*2,Nkp*NB*2))
+    else:
+      print(f"Wrong basis option in getOvl: {basis}")
+  else:
+    # Molecular calculation
+    Ovl_r = np.array(Ovl_r)
+    if(basis == "AO"):
+      Ovl = np.copy(Ovl_r)
+      del Ovl_r
+    elif(basis == "MO"):
+      # symmetrize and transform to MO basis
+      Ovlsq = np.zeros((NB,NB))
+      Ovlsq = square_m(NB,True,"Sym",Ovl_r,Ovlsq)
+      temp = np.einsum("in,nm->im", MOCoef, Ovlsq, optimize=True)
+      Ovlsq = np.einsum("jm,im->ij", MOCoef, temp, optimize=True)
+      # Fill out the alpha and beta blocks
+      Ovl = np.zeros((2*NB,2*NB))
+      Ovl[:O,:O] = Ovlsq[:O,:O]
+      Ovl[O:2*O,O:2*O] = Ovlsq[:O,:O]
+      Ovl[2*O:2*O+V,2*O:2*O+V] = Ovlsq[O:,O:]
+      Ovl[2*O+V:,2*O+V:] = Ovlsq[O:,O:]
+      del Ovl_r, Ovlsq
+  return Ovl
+  
+########################################################
+# Routine the read the Fock matrix
+########################################################
+def getFock(mol,O,V,NB,ipbc,basis,dk,MOCoef):
+  # basis: "AO" or "MO"
+  # dk: = F: regular MO(k) basis, = T: dS/dK in MO(k) basis
+  with open(f"{mol}_txts/fock.txt","r") as reader:
+    text=[]
+    for line in reader:
+      text.append(line.split())
+  # Remove parentheses
+  for i in range(len(text)):
+    for j in range(len(text[i])):
+      text[i][j] = text[i][j].replace("[","")
+      text[i][j] = text[i][j].replace("]","")
+  # Remove empty slots
+  for i in range(len(text)):
+    text[i][:] = [x for x in text[i] if x]
+  Fock_r = []
+  for i in range(len(text)):
+    for j in range(len(text[i])):
+      Fock_r.append(float(text[i][j]))
+  if(ipbc):
+    # PBC calculation
+    nmtpbc = ipbc[1]
+    ntt = (NB*(NB+1))//2
+    Fock_r = np.array(Fock_r).reshape((nmtpbc,ntt))
+    if(basis == "AO"):
+      Fock = np.copy(Fock_r)
+      del Fock_r
+    elif(basis == "MO"):
+      kp, l_list = fill_kl(ipbc)
+      Nkp = len(kp)
+      Fock_k_lt = fourier("Dir",ipbc,Fock_r,dk)
+      FockA = basis_tran("Dir",True,False,"Herm",NB,Nkp,MOCoef,Fock_k_lt)
+      Fock = np.zeros((Nkp,NB*2,Nkp,NB*2),dtype=complex)
+      for k in range(Nkp):
+        # Fill out the alpha and beta blocks
+        # oa-oa
+        Fock[k,:O,k,:O] = FockA[k,:O,:O]
+        # ob-ob
+        Fock[k,O:2*O,k,O:2*O] = FockA[k,:O,:O]
+        # va-va
+        Fock[k,2*O:2*O+V,k,2*O:2*O+V] = FockA[k,O:,O:]
+        # vb-vb
+        Fock[k,2*O+V:,k,2*O+V:] = FockA[k,O:,O:]
+        # oa-va
+        Fock[k,:O,k,2*O:2*O+V] = FockA[k,:O,O:]
+        # va-oa
+        Fock[k,2*O:2*O+V,k,:O] = FockA[k,O:,:O]
+        # ob-vb
+        Fock[k,O:2*O,k,2*O+V:] = FockA[k,:O,O:]
+        # vb-ob
+        Fock[k,2*O+V:,k,O:2*O] = FockA[k,O:,:O]
+      del Fock_r, Fock_k_lt, FockA
+      Fock = Fock.reshape((Nkp*NB*2,Nkp*NB*2))
+    else:
+      print(f"Wrong basis option in getFock: {basis}")
+    # print(f"Fock matrices: \n {Fock}")
+    # exit()
+  else:
+    # Molecular calculation
+    Fock_r = np.array(Fock_r)
+    if(basis == "AO"):
+      Fock = np.copy(Fock_r)
+      del Fock_r
+    elif(basis == "MO"):
+      # symmetrize and transform to MO basis
+      Focksq = np.zeros((NB,NB))
+      Focksq = square_m(NB,True,"Sym",Fock_r,Focksq)
+      temp = np.einsum("in,nm->im", MOCoef, Focksq, optimize=True)
+      Focksq = np.einsum("jm,im->ij", MOCoef, temp, optimize=True)
+      # Fill out the alpha and beta blocks
+      Fock = np.zeros((2*NB,2*NB))
+      Fock[:O,:O] = Focksq[:O,:O]
+      Fock[O:2*O,O:2*O] = Focksq[:O,:O]
+      Fock[2*O:2*O+V,2*O:2*O+V] = Focksq[O:,O:]
+      Fock[2*O+V:,2*O+V:] = Focksq[O:,O:]
+      del Fock_r, Focksq
+  return Fock
+  
 ########################################################
 #####Get 2e integrals###################################
 ########################################################
@@ -320,8 +488,8 @@ def get2e(NB,ipbc):
     NCMax = (nmtpbc-1)//2
     kp, l_list = fill_kl(ipbc)
     print(f"NMtPBC = {nmtpbc}, NCMax = {NCMax}, Nkp = {len(kp)}")
-  # AOInt=np.zeros((NBX, NBX, NBX, NBX))
-  # mol=sys.argv[1]
+  AOInt=np.zeros((NBX, NBX, NBX, NBX))
+  mol=sys.argv[1]
   # icount = 0
   # with open(f"{mol}_txts/twoeint.txt", "r") as reader:
   #   for line in reader:
@@ -527,9 +695,27 @@ def conMO(O, V, NB, ipbc, MOCoef, AOInt):
     temp = np.einsum('gdm,hkgabcm->hkgabcd',MOCoef,temp2,optimize=True)
     del temp2
     twoEk = np.einsum('nam,hkgmbcd->nkhgacbd',np.conjugate(MOCoef),temp,optimize=True)
+    # twoEk = np.einsum('nam,hkgmbcd->nhkgabcd',np.conjugate(MOCoef),temp,optimize=True)
+    # twoEk = np.transpose(twoEk,axes=(0,2,1,3,4,6,5,7))
     del temp
     start44=time.time()
-    print(f"MO tranformation all, time: {start44-start4:.2f}s") 
+    print(f"MO tranformation all, time: {start44-start4:.2f}s")
+    # dbar = twoEk - np.transpose(twoEk,axes=(0,1,3,2,4,5,7,6))
+    # dbar_diff = dbar + np.transpose(dbar,axes=(1,0,2,3,5,4,6,7))
+    # dbar_prod = np.einsum('pqrsijkl,pqrsijkl->',dbar_diff,np.conjugate(dbar_diff),optimize=True)
+    # print(f"dbar : {dbar_prod.real/(Nkp*Nkp*Nkp*Nkp)}")
+    # # Symmetrizing integrals
+    # twoEk /= 2
+    # twoEk += np.transpose(twoEk,axes=(1,0,3,2,5,4,7,6))
+    #
+#     max2e = np.max(twoEk.imag)
+#     twoEk_diff = twoEk - np.transpose(twoEk,axes=(1,0,3,2,5,4,7,6))
+#     twoEk_diff = twoEk_diff.reshape(Nkp*NB*Nkp*NB*Nkp*NB*Nkp*NB)
+#     twoEk_prod = np.einsum('p,p->',twoEk_diff,twoEk_diff,optimize=True)
+# #    twoEk_prod = np.einsum('pqrsijkl,pqrsijkl->',twoEk_diff,twoEk_diff,optimize=True)
+#     twoEk_sum = np.sum(abs(twoEk_diff.imag))
+#     print(f"twoEk : {max2e} {twoEk_prod} {twoEk_sum}")
+    
     #
     # Form double-bar integrals in physicist notation <12||12>
     start=time.time()
@@ -574,6 +760,12 @@ def conMO(O, V, NB, ipbc, MOCoef, AOInt):
               MO[NB:,:NB,:NB,NB:] = -np.transpose(twoEk[n,k,g,h,:,:,:,:],axes=(0,1,3,2))
               MO[:NB,NB:,NB:,:NB] = np.copy(MO[NB:,:NB,:NB,NB:])
               #
+              # print(f"K points: <{n+1}-{k+1}|{h+1}-{g+1}>: {kn},{kk},{kh},{kg}")
+              # for p in range(NB):
+              #   for q in range(NB):
+              #     for r in range(NB):
+              #       for s in range(NB):
+              #         print(f"{p+1},{q+1},{r+1},{s+1}: <pq|rs>={twoEk[n,k,h,g,p,q,r,s]} -- <qp|sr>={twoEk[k,n,g,h,q,p,s,r]}")
               #IJAB
               IJAB[n,k,h,g,:O,:O,:V,:V] = np.copy(MO[:O,:O,O:NB,O:NB])
               IJAB[n,k,h,g,O:,O:,V:,V:] = np.copy(MO[NB:O+NB,NB:O+NB,O+NB:2*NB,O+NB:2*NB])
@@ -634,6 +826,50 @@ def conMO(O, V, NB, ipbc, MOCoef, AOInt):
     IABC = IABC.reshape((O2k,V2k,V2k,V2k))
     ABCD = np.transpose(ABCD,axes=(0,4,1,5,2,6,3,7))
     ABCD = ABCD.reshape((V2k,V2k,V2k,V2k))
+
+#     NkpC = Nkp*Nkp*Nkp
+#     IJAB_diff = IJAB - np.transpose(IJAB,axes=(1,0,3,2))
+# #    IJAB_diff = IJAB + np.transpose(IJAB,axes=(1,0,2,3))
+#     IJAB_prod = np.einsum('pqrs,pqrs->',IJAB_diff,np.conjugate(IJAB_diff),optimize=True)/NkpC
+#     IJKL_diff = IJKL - np.transpose(IJKL,axes=(1,0,3,2))
+# #    IJKL_diff = IJKL + np.transpose(IJKL,axes=(1,0,2,3))
+#     IJKL_prod = np.einsum('pqrs,pqrs->',IJKL_diff,np.conjugate(IJKL_diff),optimize=True)/NkpC
+#     # IJKA_diff = IJKA + np.transpose(IJKA,axes=(1,0,2,3))
+#     # IJKA_prod = np.einsum('pqrs,pqrs->',IJKA_diff,np.conjugate(IJKA_diff),optimize=True)/NkpC
+#     # IABJ_diff = IABJ + np.transpose(IABJ,axes=(1,0,2,3))
+#     # IABJ_prod = np.einsum('pqrs,pqrs->',IABJ_diff,np.conjugate(IABJ_diff),optimize=True)/NkpC
+#     # IABC_diff = IABC + np.transpose(IABC,axes=(1,0,2,3))
+#     # IABC_prod = np.einsum('pqrs,pqrs->',IABC_diff,np.conjugate(IABC_diff),optimize=True)/NkpC
+#     ABCD_diff = ABCD - np.transpose(ABCD,axes=(1,0,3,2))
+# #    ABCD_diff = ABCD + np.transpose(ABCD,axes=(1,0,2,3))
+#     ABCD_prod = np.einsum('pqrs,pqrs->',ABCD_diff,np.conjugate(ABCD_diff),optimize=True)/NkpC
+#     print(f"IJAB : {IJAB_prod.real}")
+#     print(f"IJKL : {IJKL_prod.real}")
+#     # print(f"IJKA : {IJKA_prod.real}")
+#     # print(f"IABJ : {IABJ_prod.real}")
+#     # print(f"IABC : {IABC_prod.real}")
+#     print(f"ABCD : {ABCD_prod.real}")
+
+    # IJAB_diff = IJAB + np.transpose(IJAB,axes=(0,1,3,2))
+    # IJAB_prod = np.einsum('pqrs,pqrs->',IJAB_diff,np.conjugate(IJAB_diff),optimize=True)/NkpC
+    # IJKL_diff = IJKL + np.transpose(IJKL,axes=(0,1,3,2))
+    # IJKL_prod = np.einsum('pqrs,pqrs->',IJKL_diff,np.conjugate(IJKL_diff),optimize=True)/NkpC
+    # IJKA_diff = IJKA + np.transpose(IJKA,axes=(0,1,3,2))
+    # IJKA_prod = np.einsum('pqrs,pqrs->',IJKA_diff,np.conjugate(IJKA_diff),optimize=True)/NkpC
+    # IABJ_diff = IABJ + np.transpose(IABJ,axes=(1,0,2,3))
+    # IABJ_prod = np.einsum('pqrs,pqrs->',IABJ_diff,np.conjugate(IABJ_diff),optimize=True)/NkpC
+    # IABC_diff = IABC + np.transpose(IABC,axes=(0,1,3,2))
+    # IABC_prod = np.einsum('pqrs,pqrs->',IABC_diff,np.conjugate(IABC_diff),optimize=True)/NkpC
+    # ABCD_diff = ABCD + np.transpose(ABCD,axes=(0,1,3,2))
+    # ABCD_prod = np.einsum('pqrs,pqrs->',ABCD_diff,np.conjugate(ABCD_diff),optimize=True)/NkpC
+    # print(f"IJAB : {IJAB_prod.real}")
+    # print(f"IJKL : {IJKL_prod.real}")
+    # print(f"IJKA : {IJKA_prod.real}")
+    # print(f"IABJ : {IABJ_prod.real}")
+    # print(f"IABC : {IABC_prod.real}")
+    # print(f"ABCD : {ABCD_prod.real}")
+    # exit()
+    
     finish=time.time()
     print(f"Double bar formation all, time: {finish-start:.2f}s") 
   else:
@@ -745,13 +981,67 @@ def conMO(O, V, NB, ipbc, MOCoef, AOInt):
     finish = time.time()
     print(f"ABCD, time: {finish-start:.2f}s") 
     del MO
+
+    # IJAB_diff = IJAB + np.transpose(IJAB,axes=(1,0,2,3))
+    # IJAB_prod = np.einsum('pqrs,pqrs->',IJAB_diff,np.conjugate(IJAB_diff),optimize=True)
+    # IJKL_diff = IJKL + np.transpose(IJKL,axes=(1,0,2,3))
+    # IJKL_prod = np.einsum('pqrs,pqrs->',IJKL_diff,np.conjugate(IJKL_diff),optimize=True)
+    # IJKA_diff = IJKA + np.transpose(IJKA,axes=(1,0,2,3))
+    # IJKA_prod = np.einsum('pqrs,pqrs->',IJKA_diff,np.conjugate(IJKA_diff),optimize=True)
+    # # IABJ_diff = IABJ - np.transpose(IABJ,axes=(1,0,2,3))
+    # # IABJ_prod = np.einsum('pqrs,pqrs->',IABJ_diff,np.conjugate(IABJ_diff),optimize=True)
+    # # IABC_diff = IABC - np.transpose(IABC,axes=(1,0,2,3))
+    # # IABC_prod = np.einsum('pqrs,pqrs->',IABC_diff,np.conjugate(IABC_diff),optimize=True)
+    # ABCD_diff = ABCD + np.transpose(ABCD,axes=(1,0,2,3))
+    # ABCD_prod = np.einsum('pqrs,pqrs->',ABCD_diff,np.conjugate(ABCD_diff),optimize=True)
+    # print(f"IJAB : {IJAB_prod.real}")
+    # print(f"IJKL : {IJKL_prod.real}")
+    # print(f"IJKA : {IJKA_prod.real}")
+    # # print(f"IABJ : {IABJ_prod.real}")
+    # # print(f"IABC : {IABC_prod.real}")
+    # print(f"ABCD : {ABCD_prod.real}")
+    # IJAB_diff = IJAB + np.transpose(IJAB,axes=(0,1,3,2))
+    # IJAB_prod = np.einsum('pqrs,pqrs->',IJAB_diff,np.conjugate(IJAB_diff),optimize=True)
+    # IJKL_diff = IJKL + np.transpose(IJKL,axes=(0,1,3,2))
+    # IJKL_prod = np.einsum('pqrs,pqrs->',IJKL_diff,np.conjugate(IJKL_diff),optimize=True)
+    # # IJKA_diff = IJKA + np.transpose(IJKA,axes=(0,1,3,2))
+    # # IJKA_prod = np.einsum('pqrs,pqrs->',IJKA_diff,np.conjugate(IJKA_diff),optimize=True)
+    # # IABJ_diff = IABJ - np.transpose(IABJ,axes=(1,0,2,3))
+    # # IABJ_prod = np.einsum('pqrs,pqrs->',IABJ_diff,np.conjugate(IABJ_diff),optimize=True)
+    # IABC_diff = IABC + np.transpose(IABC,axes=(0,1,3,2))
+    # IABC_prod = np.einsum('pqrs,pqrs->',IABC_diff,np.conjugate(IABC_diff),optimize=True)
+    # ABCD_diff = ABCD + np.transpose(ABCD,axes=(0,1,3,2))
+    # ABCD_prod = np.einsum('pqrs,pqrs->',ABCD_diff,np.conjugate(ABCD_diff),optimize=True)
+    # print(f"IJAB : {IJAB_prod.real}")
+    # print(f"IJKL : {IJKL_prod.real}")
+    # # print(f"IJKA : {IJKA_prod.real}")
+    # # print(f"IABJ : {IABJ_prod.real}")
+    # print(f"IABC : {IABC_prod.real}")
+    # print(f"ABCD : {ABCD_prod.real}")
+    # exit()
+    
   return IJKL, ABCD, IABC, IJAB, IJKA, IABJ
 
 #########################################################
 # Get perturbation integrals and return them in MO basis
 #########################################################
-def getpert(O, V, NB, MOCoef, pert_type, mol):
+def getPert(O, V, NB, ipbc, MOCoef, Fock, pert_type, mol):
   # print(f"{mol}_txts/dipole_r.txt and {pert_type}")
+  NBX = NB
+  O2 = 2*O
+  V2 = 2*V
+  O2k = O2
+  V2k = V2
+  ntt = NB*(NB+1)//2
+  nttx = ntt
+  if(ipbc):
+    kp, l_list = fill_kl(ipbc)
+    Nkp = len(kp)
+    nmtpbc = ipbc[1]
+    NBX = NB*nmtpbc
+    O2k = O2*Nkp
+    V2k = V2*Nkp
+    nttx = ntt*nmtpbc
   with open(f"{mol}.txt","a") as writer:
     writer.write(f"Reading perturbation {pert_type}\n")
   if(pert_type == "DipE"):
@@ -769,13 +1059,14 @@ def getpert(O, V, NB, MOCoef, pert_type, mol):
       for i in range(len(text)):
         text[i][:] = [x for x in text[i] if x]
       ind = 0
-      AOPert=np.zeros((3*NB*NB))
+      AOPert = np.zeros((3*nttx))
       for i in range(len(text)):
         for j in range(len(text[i])):
           AOPert[ind] = float(text[i][j])
           ind += 1
       NP = 3
-      AOPert = AOPert.reshape(NP,NB,NB)
+      AOPert = AOPert.reshape(NP,nttx)
+      print(f"AOPert read {ind} {NP} {nttx}")
     else:
       print(f" No electric dipole integrals found\n")
       exit()
@@ -783,26 +1074,195 @@ def getpert(O, V, NB, MOCoef, pert_type, mol):
     print(f" Perturbation ",pert_type," is not available")
     exit()
   # print (f"AOPert\n",AOPert)
-  temp = np.einsum('im,kml,jl->kij',MOCoef,AOPert,MOCoef,optimize=True)
-  O2 = 2*O
-  V2 = 2*V
-  X_ij = np.zeros((NP,O2,O2))
-  X_ia = np.zeros((NP,O2,V2))
-  X_ab = np.zeros((NP,V2,V2))
-  for n in range(NP):
-    for i in range(O):
-      for j in range(O):
-        X_ij[n,i,j] = temp[n,i,j]
-        X_ij[n,i+O,j+O] = temp[n,i,j]
-    for i in range(O):
+  if(ipbc):
+    # PBC case
+    #
+    # Read translation vector
+    if(f"{mol}_txts/tv.txt"):
+      with open(f"{mol}_txts/tv.txt","r") as reader:
+        text=[]
+        for line in reader:
+          text.append(line.split())
+      # print(f"TV text: {text}")
+      # # Remove parentheses and empty spaces
+      # for j in range(len(text[0])):
+      #   text[0][j] = text[0][j].replace("[","")
+      #   text[0][j] = text[0][j].replace("]","")
+      #   text[0][j] = text[0][j].replace(" ","")
+      # print(f"TV text: {text}")
+      tv = np.zeros((3))
+      tv[0] = float(text[0][0])
+      tv[1] = float(text[0][1])
+      tv[2] = float(text[0][2])
+      # Convert to Bohr
+      bohr_radius = physical_constants["Bohr radius"][0]
+      tv = np.array(tv)*angstrom / bohr_radius
+      print(f"TV: {tv.shape} \n {tv}")
+      # exit()
+    else:
+      print(f" Translation vector is not available")
+      exit()
+    #
+    # dF/dk = F'
+    FockDk = getFock(mol,O,V,NB,ipbc,"MO",True,MOCoef)
+    #
+    # dS/dk = S'
+    OvlDk = getOvl(mol,O,V,NB,ipbc,"MO",True,MOCoef)
+    #
+    # Form i(U + 1/2S')
+    OrbE = np.diag(Fock.real)
+    NB2k = NB*2*Nkp
+    if(len(OrbE)!=NB2k):
+      print(f"Mismatch in the number of orbital energies: {NB2k} != {len(OrbE)}")
+      exit()
+    DE = DEk(1,NB2k,OrbE)
+    UMat = FockDk - np.einsum('ij,j->ij',OvlDk,OrbE,optimize=True)
+    UMat /= -DE
+    UMat += 0.5*OvlDk
+    # The diagonal of this matrix is 0
+    # Sdiag = -np.diag(OvlDk)*1j
+    # np.fill_diagonal(UMat,Sdiag)
+    np.fill_diagonal(UMat,0)
+    UMat = UMat*1j
+    # # print matrices out
+    # OvlDk = OvlDk.reshape((Nkp,NB*2,Nkp,NB*2))
+    # FockDk = FockDk.reshape((Nkp,NB*2,Nkp,NB*2))
+    # UMat = UMat.reshape((Nkp,NB*2,Nkp,NB*2))
+    # for k in range(Nkp):
+    #   # print(f"dF/dk for k = {k} \n {FockDk[k,:,k,:]}")
+    #   # print(f"dS/dk for k = {k} \n {OvlDk[k,:,k,:]}")
+    #   print(f"Utilde real for k = {k} \n {UMat[k,:,k,:].real}")
+    #   print(f"Utilde imag for k = {k} \n {UMat[k,:,k,:].imag}")
+    # exit()
+    del FockDk, OvlDk, OrbE, DE
+    # Now form the perturbation matrices in MO(k) basis
+    X_ij = np.zeros((NP,Nkp,Nkp,O2,O2),dtype=complex)
+    X_ia = np.zeros((NP,Nkp,Nkp,O2,V2),dtype=complex)
+    X_ab = np.zeros((NP,Nkp,Nkp,V2,V2),dtype=complex)
+    print(f"AOPert {NP} {nmtpbc} {ntt} {AOPert.shape}")
+    AOPert = AOPert.reshape((NP,nmtpbc,ntt))
+    for n in range (NP):
+      # for ncell in range (nmtpbc):
+      #   print(f"{AOPert[n,ncell,:]}")
+      Pert_k_lt = fourier("Dir",ipbc,AOPert[n,:,:],False)
+      PertA = basis_tran("Dir",True,False,"Herm",NB,Nkp,MOCoef,Pert_k_lt)
+      Pert = np.zeros((Nkp,NB*2,Nkp,NB*2),dtype=complex)
+      for k in range(Nkp):
+        # Fill out the alpha and beta blocks
+        # oa-oa
+        Pert[k,:O,k,:O] = PertA[k,:O,:O]
+        # ob-ob
+        Pert[k,O:2*O,k,O:2*O] = PertA[k,:O,:O]
+        # va-va
+        Pert[k,2*O:2*O+V,k,2*O:2*O+V] = PertA[k,O:,O:]
+        # vb-vb
+        Pert[k,2*O+V:,k,2*O+V:] = PertA[k,O:,O:]
+        # oa-va
+        Pert[k,:O,k,2*O:2*O+V] = PertA[k,:O,O:]
+        # va-oa
+        Pert[k,2*O:2*O+V,k,:O] = PertA[k,O:,:O]
+        # ob-vb
+        Pert[k,O:2*O,k,2*O+V:] = PertA[k,:O,O:]
+        # vb-ob
+        Pert[k,2*O+V:,k,O:2*O] = PertA[k,O:,:O]
+        # Pert[k,:O,:O] = PertA[k,:O,:O]
+        # Pert[k,O:2*O,O:2*O] = PertA[k,:O,:O]
+        # Pert[k,2*O:2*O+V,2*O:2*O+V] = PertA[k,O:,O:]
+        # Pert[k,2*O+V:,2*O+V:] = PertA[k,O:,O:]
+      Pert = Pert.reshape((Nkp*NB*2,Nkp*NB*2))
+      # Add UMat contribution
+      # I'm not sure about the overall sign here.
+      Pert -= UMat*tv[n]
+      Pert = Pert.reshape((Nkp,NB*2,Nkp,NB*2))
+      Pert = np.transpose(Pert,axes=(0,2,1,3))
+      for k in range(Nkp):
+        dipprod = np.einsum('ij,ij->',Pert[k,k,:,:],np.conjugate(Pert[k,k,:,:]),optimize=True)
+        print(f"Pert for Cart {n+1} for k={k}: {dipprod}")
+      for k in range(Nkp):
+        X_ij[n,k,k,:,:] = Pert[k,k,:O2,:O2]
+        X_ia[n,k,k,:,:] = Pert[k,k,:O2,O2:]
+        X_ab[n,k,k,:,:] = Pert[k,k,O2:,O2:]
+      # print matrices out
+    #   for k in range(Nkp):
+    #     print(f"X_ij real for n={n+1} k={k+1} \n {X_ij[n,k,k,:,:].real}")
+    #     print(f"X_ij imag for n={n+1} k={k+1} \n {X_ij[n,k,k,:,:].imag}")
+    #     print(f"X_ia real for n={n+1} k={k+1} \n {X_ia[n,k,k,:,:].real}")
+    #     print(f"X_ia imag for n={n+1} k={k+1} \n {X_ia[n,k,k,:,:].imag}")
+    #     print(f"X_ab real for n={n+1} k={k+1} \n {X_ab[n,k,k,:,:].real}")
+    #     print(f"X_ab imag for n={n+1} k={k+1} \n {X_ab[n,k,k,:,:].imag}")
+    # exit()
+    del AOPert, Pert_k_lt, PertA, Pert
+    X_ij = np.transpose(X_ij,axes=(0,1,3,2,4))
+    print(f"X_ij")
+    for k in range(Nkp):
+      for h in range(Nkp):
+        for i in range(O2):
+          for a in range (O2):
+            if(abs(X_ij[0,k,i,h,a].real) > 1e-12 or abs(X_ij[0,k,i,h,a].imag) > 1e-12):
+              print(f"{k+1},{i+1},{h+1},{a+1} {X_ij[0,k,i,h,a]:.6e}")
+    X_ij = X_ij.reshape((NP,O2k,O2k))
+    X_ia = np.transpose(X_ia,axes=(0,1,3,2,4))
+    print(f"X_ia")
+    for k in range(Nkp):
+      for h in range(Nkp):
+        for i in range(O2):
+          for a in range (V2):
+            if(abs(X_ia[0,k,i,h,a].real) > 1e-12 or abs(X_ia[0,k,i,h,a].imag) > 1e-12):
+              print(f"{k+1},{i+1},{h+1},{a+1} {X_ia[0,k,i,h,a]:.6e}")
+    X_ia = X_ia.reshape((NP,O2k,V2k))
+    X_ab = np.transpose(X_ab,axes=(0,1,3,2,4))
+    print(f"X_ab")
+    for k in range(Nkp):
+      for h in range(Nkp):
+        for i in range(V2):
+          for a in range (V2):
+            if(abs(X_ab[0,k,i,h,a].real) > 1e-12 or abs(X_ab[0,k,i,h,a].imag) > 1e-12):
+              print(f"{k+1},{i+1},{h+1},{a+1} {X_ab[0,k,i,h,a]:.6e}")
+    X_ab = X_ab.reshape((NP,V2k,V2k))
+    # X_ij = -X_ij
+    # X_ia = -X_ia
+    # X_ab = -X_ab
+    X_ij = np.conjugate(X_ij)
+    X_ia = np.conjugate(X_ia)
+    X_ab = np.conjugate(X_ab)
+  else:
+    # Molecular case
+    PertSQ  = np.zeros((3, NB, NB))
+    for n in range (NP):
+      PertSQ[n,:,:] = square_m(NB,True,"Sym",AOPert[n,:],PertSQ[n,:,:])
+    temp = np.einsum('im,kml,jl->kij',MOCoef,PertSQ,MOCoef,optimize=True)
+    X_ij = np.zeros((NP,O2,O2))
+    X_ia = np.zeros((NP,O2,V2))
+    X_ab = np.zeros((NP,V2,V2))
+    for n in range(NP):
+      for i in range(O):
+        for j in range(O):
+          X_ij[n,i,j] = temp[n,i,j]
+          X_ij[n,i+O,j+O] = temp[n,i,j]
+      for i in range(O):
+        for a in range(V):
+          X_ia[n,i,a] = temp[n,i,a+O]
+          X_ia[n,i+O,a+V] = temp[n,i,a+O]
       for a in range(V):
-        X_ia[n,i,a] = temp[n,i,a+O]
-        X_ia[n,i+O,a+V] = temp[n,i,a+O]
-    for a in range(V):
-      for b in range(V):
-        X_ab[n,a,b] = temp[n,a+O,b+O]
-        X_ab[n,a+V,b+V] = temp[n,a+O,b+O]
-  del temp, AOPert
+        for b in range(V):
+          X_ab[n,a,b] = temp[n,a+O,b+O]
+          X_ab[n,a+V,b+V] = temp[n,a+O,b+O]
+    del temp, AOPert, PertSQ
+    print(f"X_ij")
+    for i in range(O2):
+      for a in range (O2):
+        if(abs(X_ij[0,i,a]) > 1e-12):
+          print(f"{i+1},{a+1} {X_ij[0,i,a]:.6e}")
+    print(f"X_ia")
+    for i in range(O2):
+      for a in range (V2):
+        if(abs(X_ia[0,i,a]) > 1e-12):
+          print(f"{i+1},{a+1} {X_ia[0,i,a]:.6e}")
+    print(f"X_ab")
+    for i in range(V2):
+      for a in range (V2):
+        if(abs(X_ab[0,i,a]) > 1e-12):
+          print(f"{i+1},{a+1} {X_ab[0,i,a]:.6e}")
   # with open(f"{mol}.txt","a") as writer:
   #   writer.write(f"MOPert\n {MOPert}\n")
   # print (f"MOPert\n",MOPert)
