@@ -8,7 +8,7 @@ np.set_printoptions(precision=16,threshold=sys.maxsize,floatmode='fixed')
 # import readgau
 # from readgau import orb
 from ein_ccsdAmps import fourier, basis_tran, fill_kl, square_m
-from ein_ccsdAmps import denom, DEk
+from ein_ccsdAmps import denom, DEk, mem_check
 sys.path.insert(0, '/Volumes/gaussian/gdv_j30p/')
 np.set_printoptions(precision=16,threshold=sys.maxsize,floatmode='fixed')
 from gauopen import QCBinAr as qcb
@@ -661,7 +661,7 @@ def get2e(NB,ipbc):
 #########################################################
 ####### AO -> MO Basis 2e Integral transformation########
 #########################################################
-def conMO(O, V, NB, ipbc, MOCoef, AOInt):
+def conMO(molecule, scratch, O, V, NB, ipbc, MOCoef, AOInt):
   # AOInt: single-bar 2ERI in AO, Mulliken notation [11|22]
   # MO: double-bar 2ERI in MO, physicist notation <12||12>
   start=time.time()
@@ -814,6 +814,11 @@ def conMO(O, V, NB, ipbc, MOCoef, AOInt):
               ABCD[n,k,h,g,V:,:V,:V,V:] = np.copy(MO[O+NB:2*NB,O:NB,O:NB,O+NB:2*NB])
               ABCD[n,k,h,g,:V,V:,V:,:V] = np.copy(MO[O:NB,O+NB:2*NB,O+NB:2*NB,O:NB])
     del MO, twoEk
+    ABCD = np.transpose(ABCD,axes=(0,4,1,5,2,6,3,7))
+    ABCD = ABCD.reshape((V2k,V2k,V2k,V2k))
+    np.save(f"{scratch}/{molecule}-ABCD",ABCD)
+    del ABCD
+    ABCD = []
     IJAB = np.transpose(IJAB,axes=(0,4,1,5,2,6,3,7))
     IJAB = IJAB.reshape((O2k,O2k,V2k,V2k))
     IJKL = np.transpose(IJKL,axes=(0,4,1,5,2,6,3,7))
@@ -824,8 +829,6 @@ def conMO(O, V, NB, ipbc, MOCoef, AOInt):
     IABJ = IABJ.reshape((O2k,V2k,V2k,O2k))
     IABC = np.transpose(IABC,axes=(0,4,1,5,2,6,3,7))
     IABC = IABC.reshape((O2k,V2k,V2k,V2k))
-    ABCD = np.transpose(ABCD,axes=(0,4,1,5,2,6,3,7))
-    ABCD = ABCD.reshape((V2k,V2k,V2k,V2k))
 
 #     NkpC = Nkp*Nkp*Nkp
 #     IJAB_diff = IJAB - np.transpose(IJAB,axes=(1,0,3,2))
@@ -886,7 +889,8 @@ def conMO(O, V, NB, ipbc, MOCoef, AOInt):
     twoE = np.einsum('lm,ijkm->ikjl',MOCoef,temp,optimize=True)
     del temp
     finish = time.time()
-    print(f"MO tranformation, time: {finish-start:.2f}s") 
+    tot_mem, avlb_mem = mem_check()
+    print(f"MO tranformation, time: {finish-start:.2f}s AvlMem: {avlb_mem:.2f}GB") 
     #
     # Form double-bar integrals <12||12>. Spin blocks are stored as follows:
     # aaaa: Coulomb - Exchange
@@ -896,91 +900,162 @@ def conMO(O, V, NB, ipbc, MOCoef, AOInt):
     # baab: - Exchange
     # abba: - Exchange
     #
-    start = finish
-    MO = np.zeros((2*NB,2*NB,2*NB,2*NB))
-    MO[:NB,:NB,:NB,:NB] = np.copy(twoE)
-    MO[:NB,:NB,:NB,:NB] -= np.einsum('pqsr->pqrs',twoE,optimize=True)
-    MO[NB:,NB:,NB:,NB:] = np.copy(MO[:NB,:NB,:NB,:NB])
-    MO[NB:,:NB,NB:,:NB] = np.copy(twoE)
-    MO[:NB,NB:,:NB,NB:] = np.copy(MO[NB:,:NB,NB:,:NB])
-    MO[NB:,:NB,:NB,NB:] = -np.einsum('pqsr->pqrs',twoE,optimize=True)
-    MO[:NB,NB:,NB:,:NB] = np.copy(MO[NB:,:NB,:NB,NB:])
-    del twoE
-    finish = time.time()
-    print(f"Double bar formation, time: {finish-start:.2f}s")
-    #
-    # IJAB
-    start = finish
-    IJAB = np.zeros((O2,O2,V2,V2))
-    IJAB[:O,:O,:V,:V] = np.copy(MO[:O,:O,O:NB,O:NB])
-    IJAB[O:,O:,V:,V:] = np.copy(MO[NB:O+NB,NB:O+NB,O+NB:2*NB,O+NB:2*NB])
-    IJAB[O:,:O,V:,:V] = np.copy(MO[NB:O+NB,:O,O+NB:2*NB,O:NB])
-    IJAB[:O,O:,:V,V:] = np.copy(MO[:O,NB:O+NB,O:NB,O+NB:2*NB])
-    IJAB[O:,:O,:V,V:] = np.copy(MO[NB:O+NB,:O,O:NB,O+NB:2*NB])
-    IJAB[:O,O:,V:,:V] = np.copy(MO[:O,NB:O+NB,O+NB:2*NB,O:NB])
-    finish = time.time()
-    print(f"IJAB, time: {finish-start:.2f}s") 
-    #
-    # IJKL
-    start = finish
-    IJKL = np.zeros((O2,O2,O2,O2))
-    IJKL[:O,:O,:O,:O] = np.copy(MO[:O,:O,:O,:O])
-    IJKL[O:,O:,O:,O:] = np.copy(MO[NB:O+NB,NB:O+NB,NB:O+NB,NB:O+NB])
-    IJKL[O:,:O,O:,:O] = np.copy(MO[NB:O+NB,:O,NB:O+NB,:O])
-    IJKL[:O,O:,:O,O:] = np.copy(MO[:O,NB:O+NB,:O,NB:O+NB])
-    IJKL[O:,:O,:O,O:] = np.copy(MO[NB:O+NB,:O,:O,NB:O+NB])
-    IJKL[:O,O:,O:,:O] = np.copy(MO[:O,NB:O+NB,NB:O+NB,:O])
-    finish = time.time()
-    print(f"IJKL, time: {finish-start:.2f}s") 
-    #
-    # IJKA
-    start = finish
-    IJKA = np.zeros((O2,O2,O2,V2))
-    IJKA[:O,:O,:O,:V] = np.copy(MO[:O,:O,:O,O:NB])
-    IJKA[O:,O:,O:,V:] = np.copy(MO[NB:O+NB,NB:O+NB,NB:O+NB,O+NB:2*NB])
-    IJKA[O:,:O,O:,:V] = np.copy(MO[NB:O+NB,:O,NB:O+NB,O:NB])
-    IJKA[:O,O:,:O,V:] = np.copy(MO[:O,NB:O+NB,:O,O+NB:2*NB])
-    IJKA[O:,:O,:O,V:] = np.copy(MO[NB:O+NB,:O,:O,O+NB:2*NB])
-    IJKA[:O,O:,O:,:V] = np.copy(MO[:O,NB:O+NB,NB:O+NB,O:NB])
-    finish = time.time()
-    print(f"IJKA, time: {finish-start:.2f}s") 
-    #
-    # IABJ
-    start = finish
-    IABJ = np.zeros((O2,V2,V2,O2))
-    IABJ[:O,:V,:V,:O] = np.copy(MO[:O,O:NB,O:NB,:O])
-    IABJ[O:,V:,V:,O:] = np.copy(MO[NB:O+NB,O+NB:2*NB,O+NB:2*NB,NB:O+NB])
-    IABJ[O:,:V,V:,:O] = np.copy(MO[NB:O+NB,O:NB,O+NB:2*NB,:O])
-    IABJ[:O,V:,:V,O:] = np.copy(MO[:O,O+NB:2*NB,O:NB,NB:O+NB])
-    IABJ[O:,:V,:V,O:] = np.copy(MO[NB:O+NB,O:NB,O:NB,NB:O+NB])
-    IABJ[:O,V:,V:,:O] = np.copy(MO[:O,O+NB:2*NB,O+NB:2*NB,:O])
-    finish = time.time()
-    print(f"IABJ, time: {finish-start:.2f}s") 
-    #
-    # IABC
-    start = finish
-    IABC = np.zeros((O2,V2,V2,V2))
-    IABC[:O,:V,:V,:V] = np.copy(MO[:O,O:NB,O:NB,O:NB])
-    IABC[O:,V:,V:,V:] = np.copy(MO[NB:O+NB,O+NB:2*NB,O+NB:2*NB,O+NB:2*NB])
-    IABC[O:,:V,V:,:V] = np.copy(MO[NB:O+NB,O:NB,O+NB:2*NB,O:NB])
-    IABC[:O,V:,:V,V:] = np.copy(MO[:O,O+NB:2*NB,O:NB,O+NB:2*NB])
-    IABC[O:,:V,:V,V:] = np.copy(MO[NB:O+NB,O:NB,O:NB,O+NB:2*NB])
-    IABC[:O,V:,V:,:V] = np.copy(MO[:O,O+NB:2*NB,O+NB:2*NB,O:NB])
-    finish = time.time()
-    print(f"IABC, time: {finish-start:.2f}s") 
+    # start = finish
+    # MO = np.zeros((2*NB,2*NB,2*NB,2*NB))
+    # tot_mem, avlb_mem = mem_check()
+    # print(f"Integral size0: {np.size(twoE)} {np.size(MO)} {MO.shape} {MO.dtype} AvlMem: {avlb_mem:.2f}GB")
+    # MO[:NB,:NB,:NB,:NB] = np.copy(twoE)
+    # tot_mem, avlb_mem = mem_check()
+    # print(f"Integral size1: {np.size(twoE)} {np.size(MO)} {MO.shape} {MO.dtype} AvlMem: {avlb_mem:.2f}GB {tot_mem:.2f}GB")
+    # MO[:NB,:NB,:NB,:NB] -= np.einsum('pqsr->pqrs',twoE,optimize=True)
+    # tot_mem, avlb_mem = mem_check()
+    # print(f"Integral size2: {np.size(twoE)} {np.size(MO)} {MO.shape} {MO.dtype} AvlMem: {avlb_mem:.2f}GB")
+    # MO[NB:,NB:,NB:,NB:] = np.copy(MO[:NB,:NB,:NB,:NB])
+    # tot_mem, avlb_mem = mem_check()
+    # print(f"Integral size3: {np.size(twoE)} {np.size(MO)} {MO.shape} {MO.dtype} AvlMem: {avlb_mem:.2f}GB")
+    # MO[NB:,:NB,NB:,:NB] = np.copy(twoE)
+    # tot_mem, avlb_mem = mem_check()
+    # print(f"Integral size4: {np.size(twoE)} {np.size(MO)} {MO.shape} {MO.dtype} AvlMem: {avlb_mem:.2f}GB")
+    # MO[:NB,NB:,:NB,NB:] = np.copy(MO[NB:,:NB,NB:,:NB])
+    # tot_mem, avlb_mem = mem_check()
+    # print(f"Integral size5: {np.size(twoE)} {np.size(MO)} {MO.shape} {MO.dtype} AvlMem: {avlb_mem:.2f}GB")
+    # MO[NB:,:NB,:NB,NB:] = -np.einsum('pqsr->pqrs',twoE,optimize=True)
+    # tot_mem, avlb_mem = mem_check()
+    # print(f"Integral size6: {np.size(twoE)} {np.size(MO)} {MO.shape} {MO.dtype} AvlMem: {avlb_mem:.2f}GB")
+    # MO[:NB,NB:,NB:,:NB] = np.copy(MO[NB:,:NB,:NB,NB:])
+    # tot_mem, avlb_mem = mem_check()
+    # print(f"Integral size7: {np.size(twoE)} {np.size(MO)} {MO.shape} {MO.dtype} AvlMem: {avlb_mem:.2f}GB")
+    # # del twoE
+    # finish = time.time()
+    # tot_mem, avlb_mem = mem_check()
+    # print(f"Double bar formation, time: {finish-start:.2f}s AvlMem: {avlb_mem:.2f}GB")
     #
     # ABCD
     start = finish
     ABCD = np.zeros((V2,V2,V2,V2))
-    ABCD[:V,:V,:V,:V] = np.copy(MO[O:NB,O:NB,O:NB,O:NB])
-    ABCD[V:,V:,V:,V:] = np.copy(MO[O+NB:2*NB,O+NB:2*NB,O+NB:2*NB,O+NB:2*NB])
-    ABCD[V:,:V,V:,:V] = np.copy(MO[O+NB:2*NB,O:NB,O+NB:2*NB,O:NB])
-    ABCD[:V,V:,:V,V:] = np.copy(MO[O:NB,O+NB:2*NB,O:NB,O+NB:2*NB])
-    ABCD[V:,:V,:V,V:] = np.copy(MO[O+NB:2*NB,O:NB,O:NB,O+NB:2*NB])
-    ABCD[:V,V:,V:,:V] = np.copy(MO[O:NB,O+NB:2*NB,O+NB:2*NB,O:NB])
+    ABCD[:V,:V,:V,:V] = np.copy(twoE[O:NB,O:NB,O:NB,O:NB])
+    ABCD[:V,:V,:V,:V] -= np.transpose(twoE[O:NB,O:NB,O:NB,O:NB],axes=(0,1,3,2))
+    ABCD[V:,V:,V:,V:] = np.copy(ABCD[:V,:V,:V,:V])
+    ABCD[V:,:V,V:,:V] = np.copy(twoE[O:NB,O:NB,O:NB,O:NB])
+    ABCD[:V,V:,:V,V:] = np.copy(ABCD[V:,:V,V:,:V])
+    ABCD[V:,:V,:V,V:] = -np.transpose(twoE[O:NB,O:NB,O:NB,O:NB],axes=(0,1,3,2))
+    ABCD[:V,V:,V:,:V] = np.copy(ABCD[V:,:V,:V,V:])
+    # ABCD[:V,:V,:V,:V] = np.copy(MO[O:NB,O:NB,O:NB,O:NB])
+    # ABCD[V:,V:,V:,V:] = np.copy(MO[O+NB:2*NB,O+NB:2*NB,O+NB:2*NB,O+NB:2*NB])
+    # ABCD[V:,:V,V:,:V] = np.copy(MO[O+NB:2*NB,O:NB,O+NB:2*NB,O:NB])
+    # ABCD[:V,V:,:V,V:] = np.copy(MO[O:NB,O+NB:2*NB,O:NB,O+NB:2*NB])
+    # ABCD[V:,:V,:V,V:] = np.copy(MO[O+NB:2*NB,O:NB,O:NB,O+NB:2*NB])
+    # ABCD[:V,V:,V:,:V] = np.copy(MO[O:NB,O+NB:2*NB,O+NB:2*NB,O:NB])
+    np.save(f"{scratch}/{molecule}-ABCD",ABCD)
+    del ABCD
+    ABCD = []
     finish = time.time()
-    print(f"ABCD, time: {finish-start:.2f}s") 
-    del MO
+    tot_mem, avlb_mem = mem_check()
+    print(f"ABCD, time: {finish-start:.2f}s AvlMem: {avlb_mem:.2f}GB") 
+    #
+    # IJAB
+    start = finish
+    IJAB = np.zeros((O2,O2,V2,V2))
+    IJAB[:O,:O,:V,:V] = np.copy(twoE[:O,:O,O:NB,O:NB])
+    IJAB[:O,:O,:V,:V] -= np.transpose(twoE[:O,:O,O:NB,O:NB],axes=(0,1,3,2))
+    IJAB[O:,O:,V:,V:] = np.copy(IJAB[:O,:O,:V,:V])
+    IJAB[O:,:O,V:,:V] = np.copy(twoE[:O,:O,O:NB,O:NB])
+    IJAB[:O,O:,:V,V:] = np.copy(IJAB[O:,:O,V:,:V])    
+    IJAB[O:,:O,:V,V:] = -np.transpose(twoE[:O,:O,O:NB,O:NB],axes=(0,1,3,2))
+    IJAB[:O,O:,V:,:V] = np.copy(IJAB[O:,:O,:V,V:])
+    # IJAB[:O,:O,:V,:V] = np.copy(MO[:O,:O,O:NB,O:NB])
+    # IJAB[O:,O:,V:,V:] = np.copy(MO[NB:O+NB,NB:O+NB,O+NB:2*NB,O+NB:2*NB])
+    # IJAB[O:,:O,V:,:V] = np.copy(MO[NB:O+NB,:O,O+NB:2*NB,O:NB])
+    # IJAB[:O,O:,:V,V:] = np.copy(MO[:O,NB:O+NB,O:NB,O+NB:2*NB])
+    # IJAB[O:,:O,:V,V:] = np.copy(MO[NB:O+NB,:O,O:NB,O+NB:2*NB])
+    # IJAB[:O,O:,V:,:V] = np.copy(MO[:O,NB:O+NB,O+NB:2*NB,O:NB])
+    finish = time.time()
+    tot_mem, avlb_mem = mem_check()
+    print(f"IJAB, time: {finish-start:.2f}s AvlMem: {avlb_mem:.2f}GB") 
+    #
+    # IJKL
+    start = finish
+    IJKL = np.zeros((O2,O2,O2,O2))
+    IJKL[:O,:O,:O,:O] = np.copy(twoE[:O,:O,:O,:O])
+    IJKL[:O,:O,:O,:O] -= np.transpose(twoE[:O,:O,:O,:O],axes=(0,1,3,2))
+    IJKL[O:,O:,O:,O:] = np.copy(IJKL[:O,:O,:O,:O])
+    IJKL[O:,:O,O:,:O] = np.copy(twoE[:O,:O,:O,:O])
+    IJKL[:O,O:,:O,O:] = np.copy(IJKL[O:,:O,O:,:O])
+    IJKL[O:,:O,:O,O:] = -np.transpose(twoE[:O,:O,:O,:O],axes=(0,1,3,2))
+    IJKL[:O,O:,O:,:O] = np.copy(IJKL[O:,:O,:O,O:])
+    # IJKL[:O,:O,:O,:O] = np.copy(MO[:O,:O,:O,:O])
+    # IJKL[O:,O:,O:,O:] = np.copy(MO[NB:O+NB,NB:O+NB,NB:O+NB,NB:O+NB])
+    # IJKL[O:,:O,O:,:O] = np.copy(MO[NB:O+NB,:O,NB:O+NB,:O])
+    # IJKL[:O,O:,:O,O:] = np.copy(MO[:O,NB:O+NB,:O,NB:O+NB])
+    # IJKL[O:,:O,:O,O:] = np.copy(MO[NB:O+NB,:O,:O,NB:O+NB])
+    # IJKL[:O,O:,O:,:O] = np.copy(MO[:O,NB:O+NB,NB:O+NB,:O])
+    finish = time.time()
+    tot_mem, avlb_mem = mem_check()
+    print(f"IJKL, time: {finish-start:.2f}s AvlMem: {avlb_mem:.2f}GB") 
+    #
+    # IJKA
+    start = finish
+    IJKA = np.zeros((O2,O2,O2,V2))
+    IJKA[:O,:O,:O,:V] = np.copy(twoE[:O,:O,:O,O:NB])
+    IJKA[:O,:O,:O,:V] -= np.transpose(twoE[:O,:O,O:NB,:O],axes=(0,1,3,2))
+    IJKA[O:,O:,O:,V:] = np.copy(IJKA[:O,:O,:O,:V])
+    IJKA[O:,:O,O:,:V] = np.copy(twoE[:O,:O,:O,O:NB])
+    IJKA[:O,O:,:O,V:] = np.copy(IJKA[O:,:O,O:,:V])
+    IJKA[O:,:O,:O,V:] = -np.transpose(twoE[:O,:O,O:NB,:O],axes=(0,1,3,2))
+    IJKA[:O,O:,O:,:V] = np.copy(IJKA[O:,:O,:O,V:])
+    # IJKA[:O,:O,:O,:V] = np.copy(MO[:O,:O,:O,O:NB])
+    # IJKA[O:,O:,O:,V:] = np.copy(MO[NB:O+NB,NB:O+NB,NB:O+NB,O+NB:2*NB])
+    # IJKA[O:,:O,O:,:V] = np.copy(MO[NB:O+NB,:O,NB:O+NB,O:NB])
+    # IJKA[:O,O:,:O,V:] = np.copy(MO[:O,NB:O+NB,:O,O+NB:2*NB])
+    # IJKA[O:,:O,:O,V:] = np.copy(MO[NB:O+NB,:O,:O,O+NB:2*NB])
+    # IJKA[:O,O:,O:,:V] = np.copy(MO[:O,NB:O+NB,NB:O+NB,O:NB])
+    finish = time.time()
+    tot_mem, avlb_mem = mem_check()
+    print(f"IJKA, time: {finish-start:.2f}s AvlMem: {avlb_mem:.2f}GB") 
+    #
+    # IABJ
+    start = finish
+    IABJ = np.zeros((O2,V2,V2,O2))
+    IABJ[:O,:V,:V,:O] = np.copy(twoE[:O,O:NB,O:NB,:O])
+    IABJ[:O,:V,:V,:O] -= np.transpose(twoE[:O,O:NB,:O,O:NB],axes=(0,1,3,2))
+    IABJ[O:,V:,V:,O:] = np.copy(IABJ[:O,:V,:V,:O])
+    IABJ[O:,:V,V:,:O] = np.copy(twoE[:O,O:NB,O:NB,:O])
+    IABJ[:O,V:,:V,O:] = np.copy(IABJ[O:,:V,V:,:O])
+    IABJ[O:,:V,:V,O:] = -np.transpose(twoE[:O,O:NB,:O,O:NB],axes=(0,1,3,2))
+    IABJ[:O,V:,V:,:O] = np.copy(IABJ[O:,:V,:V,O:])
+    # IABJ[:O,:V,:V,:O] = np.copy(MO[:O,O:NB,O:NB,:O])
+    # IABJ[O:,V:,V:,O:] = np.copy(MO[NB:O+NB,O+NB:2*NB,O+NB:2*NB,NB:O+NB])
+    # IABJ[O:,:V,V:,:O] = np.copy(MO[NB:O+NB,O:NB,O+NB:2*NB,:O])
+    # IABJ[:O,V:,:V,O:] = np.copy(MO[:O,O+NB:2*NB,O:NB,NB:O+NB])
+    # IABJ[O:,:V,:V,O:] = np.copy(MO[NB:O+NB,O:NB,O:NB,NB:O+NB])
+    # IABJ[:O,V:,V:,:O] = np.copy(MO[:O,O+NB:2*NB,O+NB:2*NB,:O])
+    finish = time.time()
+    print(f"IABJ, time: {finish-start:.2f}s AvlMem: {avlb_mem:.2f}GB") 
+    #
+    # IABC
+    start = finish
+    IABC = np.zeros((O2,V2,V2,V2))
+    IABC[:O,:V,:V,:V] = np.copy(twoE[:O,O:NB,O:NB,O:NB])
+    IABC[:O,:V,:V,:V] -= np.transpose(twoE[:O,O:NB,O:NB,O:NB],axes=(0,1,3,2))
+    IABC[O:,V:,V:,V:] = np.copy(IABC[:O,:V,:V,:V])
+    IABC[O:,:V,V:,:V] = np.copy(twoE[:O,O:NB,O:NB,O:NB])
+    IABC[:O,V:,:V,V:] = np.copy(IABC[O:,:V,V:,:V])
+    IABC[O:,:V,:V,V:] = -np.transpose(twoE[:O,O:NB,O:NB,O:NB],axes=(0,1,3,2))
+    IABC[:O,V:,V:,:V] = np.copy(IABC[O:,:V,:V,V:])
+    # IABC[:O,:V,:V,:V] = np.copy(MO[:O,O:NB,O:NB,O:NB])
+    # IABC[O:,V:,V:,V:] = np.copy(MO[NB:O+NB,O+NB:2*NB,O+NB:2*NB,O+NB:2*NB])
+    # IABC[O:,:V,V:,:V] = np.copy(MO[NB:O+NB,O:NB,O+NB:2*NB,O:NB])
+    # IABC[:O,V:,:V,V:] = np.copy(MO[:O,O+NB:2*NB,O:NB,O+NB:2*NB])
+    # IABC[O:,:V,:V,V:] = np.copy(MO[NB:O+NB,O:NB,O:NB,O+NB:2*NB])
+    # IABC[:O,V:,V:,:V] = np.copy(MO[:O,O+NB:2*NB,O+NB:2*NB,O:NB])
+    finish = time.time()
+    tot_mem, avlb_mem = mem_check()
+    print(f"IABC, time: {finish-start:.2f}s AvlMem: {avlb_mem:.2f}GB ") 
+    # del MO
+    del twoE
+    tot_mem, avlb_mem = mem_check()
+    print(f"MO release, time: {finish-start:.2f}s AvlMem: {avlb_mem:.2f}GB") 
+    # exit()
 
     # IJAB_diff = IJAB + np.transpose(IJAB,axes=(1,0,2,3))
     # IJAB_prod = np.einsum('pqrs,pqrs->',IJAB_diff,np.conjugate(IJAB_diff),optimize=True)

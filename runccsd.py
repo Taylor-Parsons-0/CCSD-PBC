@@ -3,8 +3,9 @@ import os
 import sys
 import re
 import time
+
 from read import getFort, getFock, get2e, conMO, getPert
-from ein_ccsdAmps import denom, AmpIt, tau_tildeEq, tauEq, T_interm, t1Eq, t2Eq, E_CCSD, fill_kl, L_Interm, Const_Interm, l1Eq, l2Eq, pert_rhs, tx1Eq, tx2Eq, Xi, TrDen1
+from ein_ccsdAmps import mem_check, denom, AmpIt, tau_tildeEq, tauEq, T_interm, t1Eq, t2Eq, E_CCSD, fill_kl, L_Interm, Const_Interm, l1Eq, l2Eq, pert_rhs, tx1Eq, tx2Eq, Xi, TrDen1
 
 #Define molecule
 if len(sys.argv)<2:
@@ -12,13 +13,21 @@ if len(sys.argv)<2:
   exit()
 else:
   molecule=sys.argv[1]
+scratch = "/Users/marco/scratch"
 #Clean pervious outputs
 os.system(f"rm {molecule}.txt")
+start0=time.time()
+tot_mem, avlb_mem = mem_check()
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Total Memory: {tot_mem:.2f}GB, Available Memory: {avlb_mem:.2f}GB \n")
 
 # Retrieve various quantities
 O, V, NB, scfE, MOCoef, ipbc, k_weights = getFort(molecule)
 Fock = getFock(molecule,O,V,NB,ipbc,"MO",False,MOCoef)
 #O, V, NB, scfE, Fock, MOCoef, ipbc, k_weights, Core=getFort(molecule)
+tot_mem, avlb_mem = mem_check()
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Read MO Coeff and Fock Matrix, Time: {time.time()-start0:.2f}s, AvlMem: {avlb_mem:.2f}GB \n")
 O2 = O*2
 V2 = V*2
 NB2 = NB*2
@@ -41,15 +50,19 @@ NB2 = NB*2
 start=time.time()
 #AOInt=get2e(NB,ipbc,AOInt)
 AOInt = get2e(NB,ipbc)
-print(f"AOInt-3 {AOInt.shape} {len(AOInt)}")
+# np.save(f"{molecule}_txts/AOInt",AOInt)
+# AOInt2 = np.load(f"{molecule}_txts/AOInt.npy")
+tot_mem, avlb_mem = mem_check()
+print(f"AOInt-3 {AOInt.shape} {np.size(AOInt)}")
 
 with open(f"{molecule}.txt","a") as writer:
-  writer.write(f"Read 2ERI, Time: {time.time()-start:.2f}s\n")
+  writer.write(f"Read AO 2ERI, Time: {time.time()-start:.2f}s, AvlMem: {avlb_mem:.2f}GB \n")
 #Change to spin orbital form
 start=time.time()
-IJKL,ABCD,IABC,IJAB,IJKA,IABJ = conMO(O,V,NB,ipbc,MOCoef,AOInt)
+IJKL,ABCD,IABC,IJAB,IJKA,IABJ = conMO(molecule,scratch,O,V,NB,ipbc,MOCoef,AOInt)
+tot_mem, avlb_mem = mem_check()
 with open(f"{molecule}.txt","a") as writer:
-  writer.write(f"2ERI AO->MO, Time: {time.time()-start:.2f}s\n")
+  writer.write(f"2ERI AO->MO, Time: {time.time()-start:.2f}s, AvlMem: {avlb_mem:.2f}GB \n")
 
 start=time.time()
 # PBC Info
@@ -81,8 +94,9 @@ MaxIt = 100
 # Define denominator arrays
 W = 0
 D1, D2 =  denom(1,O2,V2,kp,Fock,W)
+tot_mem, avlb_mem = mem_check()
 with open(f"{molecule}.txt","a") as writer:
-  writer.write(f"Compute energy denominators, Time: {time.time()-start:.2f}s\n")
+  writer.write(f"Compute energy denominators, Time: {time.time()-start:.2f}s, AvlMem: {avlb_mem:.2f}GB\n")
   
 ##########################################################################  
 # CCSD Energy and Amplitudes
@@ -93,6 +107,9 @@ t1 = np.zeros((O2k,V2k),dtype=Fock.dtype)
 # t2 = np.zeros((O2, O2, V2, V2))
 t2 = np.conjugate(IJAB)/D2.real
 EMP2 = 0.25*np.einsum('ijab,ijab',IJAB,t2,optimize=True)/NkpC
+tot_mem, avlb_mem = mem_check()
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"T guess, Time: {time.time()-start:.2f}s, AvlMem: {avlb_mem:.2f}GB\n")
 # t2 = IJAB/D2.real
 # EMP2 = 0.25*np.einsum('ijab,ijab',np.conjugate(IJAB),t2,optimize=True)/NkpC
 # t2 = t2.reshape((4,O2,4,O2,4,V2,4,V2))
@@ -120,19 +137,28 @@ with open(f"{molecule}.txt","a") as writer:
   writer.write("*          SOLVING CCSD T AMPLITUDE EQS.           *\n")
   writer.write("****************************************************\n")
   writer.write(f"E(MP2) = {EMP2.real:.10f}\n")
-tau = np.zeros((O2k,O2k,V2k,V2k),dtype=Fock.dtype)
-W_efam = np.zeros((V2k,V2k,V2k,O2k),dtype=Fock.dtype)
-W_iemn = np.zeros((O2k,V2k,O2k,O2k),dtype=Fock.dtype)
-W_mbej = np.zeros((O2k,V2k,V2k,O2k),dtype=Fock.dtype)
-W_mnij = np.zeros((O2k,O2k,O2k,O2k),dtype=Fock.dtype)
-W_abef = np.zeros((V2k,V2k,V2k,V2k),dtype=Fock.dtype)
-F_ae = np.zeros((V2k,V2k),dtype=Fock.dtype)
-F_mi = np.zeros((O2k,O2k),dtype=Fock.dtype)
-F_me = np.zeros((O2k,V2k),dtype=Fock.dtype)
-t1, t2 = AmpIt("T",molecule,Ok,Vk,Nkp,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,ABCD,
-               IABC,IJAB,IABJ,IJKA,tau,W_efam,W_iemn,W_mbej,W_mnij,W_abef,
-               F_ae,F_mi,F_me,D1,D2,D1,D2,t1,t2,t1,t2,t1,t2,ipbc)
-#exit()
+tau = []
+W_efam = []
+W_iemn = []
+W_mbej = []
+W_mnij = []
+W_abef = []
+F_ae = []
+F_mi = []
+F_me = []
+# tau = np.zeros((O2k,O2k,V2k,V2k),dtype=Fock.dtype)
+# W_efam = np.zeros((V2k,V2k,V2k,O2k),dtype=Fock.dtype)
+# W_iemn = np.zeros((O2k,V2k,O2k,O2k),dtype=Fock.dtype)
+# W_mbej = np.zeros((O2k,V2k,V2k,O2k),dtype=Fock.dtype)
+# W_mnij = np.zeros((O2k,O2k,O2k,O2k),dtype=Fock.dtype)
+# W_abef = np.zeros((V2k,V2k,V2k,V2k),dtype=Fock.dtype)
+# F_ae = np.zeros((V2k,V2k),dtype=Fock.dtype)
+# F_mi = np.zeros((O2k,O2k),dtype=Fock.dtype)
+# F_me = np.zeros((O2k,V2k),dtype=Fock.dtype)
+t1, t2 = AmpIt("T",molecule,scratch,Ok,Vk,Nkp,MaxIt,ThrE,ThrA,scfE,Fock,
+               IJKL,ABCD,IABC,IJAB,IABJ,IJKA,tau,W_efam,W_iemn,W_mbej,
+               W_mnij,W_abef,F_ae,F_mi,F_me,D1,D2,D1,D2,t1,t2,t1,t2,t1,
+               t2,ipbc)
 
 ##########################################################################  
 # Compute constant intermediates
@@ -143,7 +169,11 @@ tau = tauEq(1, Nkp, t1, t2)
 F_ae,F_mi,F_me,W_mnij,W_abef,W_mbej = T_interm(1,Ok,Vk,Nkp,Fock,t1,t2,IJKL,
                                                ABCD,IABC,IJAB,IABJ,IJKA,
                                                tau_tilde,tau)
-del ABCD
+#del ABCD
+if(f"{scratch}/{molecule}-ABCD.npy"): 
+  os.system(f"mv {scratch}/{molecule}-ABCD.npy {scratch}/{molecule}-Wabef.npy")
+else:
+  W_abef = ABCD
 # fae_prod = np.einsum('ia,ia->',np.conjugate(F_ae),F_ae,optimize=True)/Nkp 
 # fmi_prod = np.einsum('ia,ia->',np.conjugate(F_mi),F_mi,optimize=True)/Nkp
 # fme_prod = np.einsum('ia,ia->',np.conjugate(F_me),F_me,optimize=True)/Nkp
@@ -152,10 +182,14 @@ del ABCD
 # wmnij_prod = np.einsum('ijab,ijab->',np.conjugate(W_mnij),W_mnij,optimize=True)/(Nkp*Nkp*Nkp)
 # with open(f"{molecule}.txt","a") as writer:
 #   writer.write(f"Products before: Fae Fmi Fme Wabef Wmbej Wmnij\n {fae_prod.real} {fmi_prod.real} {fme_prod.real} {wabef_prod.real} {wmbej_prod.real} {wmnij_prod.real}\n")
-F_ae,F_mi,W_abef,W_mbej,W_efam,W_iemn = Const_Interm(1,Nkp,t1,t2,tau,IJAB,
+F_ae,F_mi,W_abef,W_mbej,W_efam,W_iemn = Const_Interm(1,molecule,scratch,Nkp,
+                                                     t1,t2,tau,IJAB,
                                                      IABJ,IJKA,IABC,F_ae,
                                                      F_mi,F_me,W_mnij,
                                                      W_abef,W_mbej)
+tot_mem, avlb_mem = mem_check()
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Compute constant intermediates, Time: {time.time()-start:.2f}s, AvlMem: {avlb_mem:.2f}GB\n")
 # fae_prod = np.einsum('ia,ia->',np.conjugate(F_ae),F_ae,optimize=True)/Nkp 
 # fmi_prod = np.einsum('ia,ia->',np.conjugate(F_mi),F_mi,optimize=True)/Nkp
 # wabef_prod = np.einsum('ijab,ijab->',np.conjugate(W_abef),W_abef,optimize=True)/(Nkp*Nkp*Nkp)
@@ -176,14 +210,14 @@ l1 = np.copy(np.conjugate(t1))
 l2 = np.copy(np.conjugate(t2))
 # l1 = np.copy(t1)
 # l2 = np.copy(t2)
-start0=time.time()
 with open(f"{molecule}.txt","a") as writer:
   writer.write("****************************************************\n")
   writer.write("*        SOLVING CCSD Lambda AMPLITUDE EQS.        *\n")
   writer.write("****************************************************\n")
-l1, l2 = AmpIt("L",molecule,Ok,Vk,Nkp,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,W_abef,
-               IABC,IJAB,IABJ,IJKA,tau,W_efam,W_iemn,W_mbej,W_mnij,W_abef,
-               F_ae,F_mi,F_me,D1,D2,D1,D2,t1,t2,l1,l2,t1,t2,ipbc)
+l1, l2 = AmpIt("L",molecule,scratch,Ok,Vk,Nkp,MaxIt,ThrE,ThrA,scfE,Fock,
+               IJKL,W_abef,IABC,IJAB,IABJ,IJKA,tau,W_efam,W_iemn,W_mbej,
+               W_mnij,W_abef,F_ae,F_mi,F_me,D1,D2,D1,D2,t1,t2,l1,l2,t1,
+               t2,ipbc)
 
 ##########################################################################  
 # CCSD LR equations
@@ -193,12 +227,16 @@ l1, l2 = AmpIt("L",molecule,Ok,Vk,Nkp,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,W_abef,
 # WPert = frequency of perturbation
 # if WPErt != 0, there two sets of amplitudes per perturbation Tx(+w) and Tx(-w)
 # Use same intermediates as in Lambda equations
+start=time.time()
 with open(f"{molecule}.txt","a") as writer:
   writer.write("****************************************************\n")
   writer.write("*           COMPUTING CCSD LR FUNCTION             *\n")
   writer.write("****************************************************\n")
 PertType = "DipE"
 NP, X_ij, X_ia, X_ab = getPert(O,V,NB,ipbc,MOCoef,Fock,PertType,molecule)
+tot_mem, avlb_mem = mem_check()
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Read perturbation integrals, Time: {time.time()-start:.2f}s, AvlMem: {avlb_mem:.2f}GB\n")
 xij_prod = np.einsum('ia,ia->',np.conjugate(X_ij[0,:,:]),X_ij[0,:,:],optimize=True)/Nkp 
 xia_prod = np.einsum('ia,ia->',np.conjugate(X_ia[0,:,:]),X_ia[0,:,:],optimize=True)/Nkp 
 xab_prod = np.einsum('ia,ia->',np.conjugate(X_ab[0,:,:]),X_ab[0,:,:],optimize=True)/Nkp 
@@ -242,7 +280,11 @@ for iw in range(len(Wlist)):
     MaxABi = np.max(abs(X_ab[ip,:,:].imag))
     MaxX[ip] = max(MaxIJr,MaxIJi,MaxIAr,MaxIAi,MaxABr,MaxABi)
     if(MaxX[ip] > 1e-15):
+      start=time.time()
       rhs1, rhs2, rhs1a, rhs1b, rhs1c = pert_rhs(1, Nkp, O2k, V2k, t1, t2, X_ij[ip,:,:], X_ia[ip,:,:], X_ab[ip,:,:])
+      tot_mem, avlb_mem = mem_check()
+      with open(f"{molecule}.txt","a") as writer:
+        writer.write(f"Form right hand side, Time: {time.time()-start:.2f}s, AvlMem: {avlb_mem:.2f}GB\n")
       rhs1_prod = np.einsum('ia,ia->',np.conjugate(rhs1),rhs1,optimize=True)/Nkp 
       rhs2_prod = np.einsum('ijab,ijab->',np.conjugate(rhs2),rhs2,optimize=True)/(Nkp*Nkp*Nkp)
       rhs1a_prod = np.einsum('ia,ia->',np.conjugate(rhs1a),rhs1a,optimize=True)/Nkp 
@@ -305,12 +347,12 @@ for iw in range(len(Wlist)):
           writer.write(f"Products Tx: {t1_prod.real} {rhs1_prod.real} {rhs2_prod.real}\n")
     
         # Amplitudes loop
-        tx1[ip,ipmw,:,:], tx2[ip,ipmw,:,:,:,:] = AmpIt("Tx",molecule,Ok,Vk,Nkp,MaxIt,ThrE,
-                                                       ThrA,scfE,Fock,IJKL,W_abef,IABC,
-                                                       IJAB,IABJ,IJKA,tau,W_efam,W_iemn,
-                                                       W_mbej,W_mnij,W_abef,F_ae,F_mi,
-                                                       F_me,rhs1,rhs2,D1,D2,t1,t2,l1,l2,
-                                                       tx1[ip,ipmw,:,:],
+        tx1[ip,ipmw,:,:], tx2[ip,ipmw,:,:,:,:] = AmpIt("Tx",molecule,scratch,Ok,Vk,Nkp,
+                                                       MaxIt,ThrE,ThrA,scfE,Fock,IJKL,
+                                                       W_abef,IABC,IJAB,IABJ,IJKA,tau,
+                                                       W_efam,W_iemn,W_mbej,W_mnij,W_abef,
+                                                       F_ae,F_mi,F_me,rhs1,rhs2,D1,D2,t1,t2,
+                                                       l1,l2,tx1[ip,ipmw,:,:],
                                                        tx2[ip,ipmw,:,:,:,:],ipbc)
   #
   # Now that we have all the Tx amplitudes for this W, we can compute
@@ -318,15 +360,18 @@ for iw in range(len(Wlist)):
   # amplitudes, and the transition 1PDM-like rho1 and contract with
   # the perturbation integrals
   #
-  start0=time.time()
   # Reset denominators
   D1, D2 =  denom(1, O2, V2, kp, Fock, 0)
 #  for ip in range(2):
   for ip in range(NP):
     if(MaxX[ip] > 1e-15):
       # Evaluate Xi amplitudes 
+      start=time.time()
       Xi1, Xi2 = Xi(1,Nkp,tx1[ip,0,:,:],tx2[ip,0,:,:,:,:],l1,l2,t1,IABC,IJAB,IJKA,F_ae,F_mi,
                     F_me,W_mbej,D2)
+      tot_mem, avlb_mem = mem_check()
+      with open(f"{molecule}.txt","a") as writer:
+        writer.write(f"Form Xi terms, Time: {time.time()-start:.2f}s, AvlMem: {avlb_mem:.2f}GB\n")
       Xi1_prod = np.einsum('ia,ia->',np.conjugate(Xi1),Xi1,optimize=True)/Nkp 
       Xi2_prod = np.einsum('ijab,ijab->',np.conjugate(Xi2),Xi2,optimize=True)/(Nkp*Nkp*Nkp)
       with open(f"{molecule}.txt","a") as writer:
@@ -344,7 +389,11 @@ for iw in range(len(Wlist)):
       for ipmw in range(NW):
         # Loop over +/-omega
         # Evaluate 1PDM
+        start=time.time()
         rho1 = TrDen1(1,O2k,NB2k,Nkp,tx1[ip,ipmw,:,:],tx2[ip,ipmw,:,:,:,:],l1,l2,t1,t2)
+        tot_mem, avlb_mem = mem_check()
+        with open(f"{molecule}.txt","a") as writer:
+          writer.write(f"Form Rho, Time: {time.time()-start:.2f}s, AvlMem: {avlb_mem:.2f}GB\n")
         rho1ij_prod = np.einsum('ij,ij->',np.conjugate(rho1[:O2k,:O2k]),rho1[:O2k,:O2k],optimize=True)/Nkp 
         rho1ia_prod = np.einsum('ij,ij->',np.conjugate(rho1[:O2k,O2k:]),rho1[:O2k,O2k:],optimize=True)/Nkp 
         rho1ab_prod = np.einsum('ij,ij->',np.conjugate(rho1[O2k:,O2k:]),rho1[O2k:,O2k:],optimize=True)/Nkp 
@@ -382,6 +431,8 @@ for iw in range(len(Wlist)):
     with open(f"{molecule}.txt","a") as writer:
       writer.write(f" {ip+1} {tensor[iw,ip,0].real} {tensor[iw,ip,1].real} {tensor[iw,ip,2].real}\n")
       # writer.write(f" {ip+1} {tensor[iw,ip,0]:+.6f} {tensor[iw,ip,1]:+.6f} {tensor[iw,ip,2]:+.6f}\n")
-  with open(f"{molecule}.txt","a") as writer:
-    writer.write(f"Time: {time.time()-start:.2f}\n")
+with open(f"{molecule}.txt","a") as writer:
+  writer.write(f"Total Calculation Time: {time.time()-start0:.2f}s\n")
+# Delete scratch files
+os.system(f"rm {scratch}/*.npy")
                
