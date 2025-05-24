@@ -128,6 +128,8 @@ def AmpIt(AmpType,molecule,scratch,O,V,Nkp,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,
   N = 0
   not_conver = True
   # Setup DIIS arrays
+  # MaxD = 4
+  # RepD = 3
   MaxD = 6
   RepD = 5
   DoDIIS = "F"
@@ -365,7 +367,6 @@ def AmpIt(AmpType,molecule,scratch,O,V,Nkp,MaxIt,ThrE,ThrA,scfE,Fock,IJKL,
   # Delete DIIS files
   os.system(f"rm {scratch}/{molecule}-DIISa1.npy")
   os.system(f"rm {scratch}/{molecule}-DIISa2.npy")
-  os.system(f"rm {scratch}/{molecule}-DIISe.npy")
   return a1, a2
 
 ##########################################################################
@@ -426,41 +427,91 @@ def DIIS(scratch,molecule,O,V,Iter,MaxD,Thr,RepD,amp1,amp2):
   # st1/2: saved amplitudes from previous iterations
   # e_DIIS: save errors between iterations
   # B: DIIS matrix
+  tot_mem, avlb_mem = mem_check()
+  print(f"DIIS-0 Iter: {Iter} AvlMem: {avlb_mem:.2f}GB ") 
   amp_type = amp1.dtype
+  sizeA1 = np.size(amp1)
+  sizeA2 = np.size(amp2)
   if(amp_type != amp2.dtype):
     print(f"Amplitude type mismatch: a1={amp_type} vs a2={amp2.dtype}")
     exit()
   ThrD = Thr/100
+  tot_mem, avlb_mem = mem_check()
+  print(f"DIIS-1 AvlMem: {avlb_mem:.2f}GB ") 
   st1 = list(np.load(f"{scratch}/{molecule}-DIISa1.npy"))
   st2 = list(np.load(f"{scratch}/{molecule}-DIISa2.npy"))
-  print(f"st1 {amp1.shape} {np.size(st1)} {len(st1)} \n ")
+  tot_mem, avlb_mem = mem_check()
+  print(f"DIIS-2 AvlMem: {avlb_mem:.2f}GB ") 
+  print(f"st1 {amp1.shape} {np.size(st1)} {len(st1)}")
   st1.append(amp1.reshape(np.size(amp1)))
   st2.append(amp2.reshape(np.size(amp2)))
+  tot_mem, avlb_mem = mem_check()
+  print(f"DIIS-3 AvlMem: {avlb_mem:.2f}GB ") 
+  print(f"st1 {amp1.shape} {np.size(st1)} {len(st1)}")
   # print(f"st1 {amp1.shape} {np.size(st1)} {np.size(st2)} {len(st1)} {len(st2)} \n ")
   # st1.append(list(amp1.flatten()))
   # st2.append(list(amp2.flatten()))
   if len(st1)!= len(st2):
     print(f"String length mismatch in DIIS: {len(st1)}, {len(st2)}\n")
     exit()
-  ev = list(np.array(st1[len(st1) - 1]) - np.array(st1[len(st1) - 2])) + list(np.array(st2[len(st2) - 1]) - np.array(st2[len(st2) - 2]))
-  if(Iter == 1):
-    e_DIIS = []
-  else:
-    e_DIIS = list(np.load(f"{scratch}/{molecule}-DIISe.npy"))
-  e_DIIS.append(ev)
-  del ev
+  # ev = list(np.array(st1[len(st1) - 1]) - np.array(st1[len(st1) - 2])) + list(np.array(st2[len(st2) - 1]) - np.array(st2[len(st2) - 2]))
+  # tot_mem, avlb_mem = mem_check()
+  # print(f"DIIS-4 AvlMem: {avlb_mem:.2f}GB ") 
+  # if(Iter == 1):
+  #   e_DIIS = []
+  # else:
+  #   e_DIIS = list(np.load(f"{scratch}/{molecule}-DIISe.npy"))
+  # tot_mem, avlb_mem = mem_check()
+  # print(f"DIIS-5 AvlMem: {avlb_mem:.2f}GB ") 
+  # e_DIIS.append(ev)
+  # tot_mem, avlb_mem = mem_check()
+  # print(f"DIIS-6 AvlMem: {avlb_mem:.2f}GB ") 
+  # del ev
+  tot_mem, avlb_mem = mem_check()
+  print(f"DIIS-7 AvlMem: {avlb_mem:.2f}GB ") 
   # print(f"e_DIIS2 {np.size(e_DIIS)} {len(e_DIIS)} \n ")
   # exit()
+  # if len(st1) > MaxD:
   if len(st1) > MaxD:
     # Remove the oldest information 
     del st1[0]
     del st2[0]
-    del e_DIIS[0]
+    # del e_DIIS[0]
   # e_DIIS = np.array(e_DIIS)
+  tot_mem, avlb_mem = mem_check()
+  print(f"DIIS-8 AvlMem: {avlb_mem:.2f}GB ") 
+  print(f"st1 {amp1.shape} {np.size(st1)} {len(st1)}")
+  # print(f"st1 again {amp1.shape} {np.size(st1)} {len(st1)} \n ")
+  # np.save(f"{scratch}/{molecule}-DIISa1",st1)
+  # np.save(f"{scratch}/{molecule}-DIISa2",st2)
+  # # np.save(f"{scratch}/{molecule}-DIISe",e_DIIS)
+  # tot_mem, avlb_mem = mem_check()
+  # print(f"DIIS-14 AvlMem: {avlb_mem:.2f}GB ")
+  len1 = len(st1)
+  np.save(f"{scratch}/{molecule}-DIISa1",st1)
+  np.save(f"{scratch}/{molecule}-DIISa2",st2)
+  # del st1, st2
   DoDIIS = "F"
-  if len(st1)==MaxD and (Iter%RepD==0):
-    B = np.zeros((MaxD,MaxD),dtype=amp1.dtype)
-    B[:MaxD-1,:MaxD-1] += np.einsum('ik,jk->ij',np.conjugate(e_DIIS),e_DIIS,optimize=True)
+  tot_mem, avlb_mem = mem_check()
+  print(f"DIIS-15 AvlMem: {avlb_mem:.2f}GB ") 
+  print(f"st1 {amp1.shape} {np.size(st1)} {len(st1)} {np.size(st2)} {len(st2)}")
+  if len1==MaxD and (Iter%RepD==0):
+    del amp1, amp2
+    B = np.zeros((MaxD,MaxD),dtype=amp_type)
+    ev1 = np.zeros((MaxD-1,sizeA1),dtype=amp_type)
+    for l in range(MaxD-1):
+      ev1[l,:] = np.array(st1[l+1]) - np.array(st1[l])
+    del st1
+    B[:MaxD-1,:MaxD-1] += np.einsum('ik,jk->ij',np.conjugate(ev1),ev1,optimize=True)
+    del ev1
+    ev2 = np.zeros((MaxD-1,sizeA2),dtype=amp_type)
+    for l in range(MaxD-1):
+      ev2[l,:] = np.array(st2[l+1]) - np.array(st2[l])
+    del st2
+    B[:MaxD-1,:MaxD-1] += np.einsum('ik,jk->ij',np.conjugate(ev2),ev2,optimize=True)
+    del ev2
+    tot_mem, avlb_mem = mem_check()
+    print(f"DIIS-9 AvlMem: {avlb_mem:.2f}GB ") 
     B[MaxD-1,:] = 1
     B[:,MaxD-1] = 1
     B[MaxD-1,MaxD-1] = 0
@@ -473,15 +524,78 @@ def DIIS(scratch,molecule,O,V,Iter,MaxD,Thr,RepD,amp1,amp2):
     if(abs(csum-1)>ThrD):
       print(f"Issue with coefficients in DIIS: sum_C = {csum}\n")
       exit()
-    t1d = np.zeros((len(st1[0])),dtype=amp_type)
-    t2d = np.zeros((len(st2[0])),dtype=amp_type)
+    tot_mem, avlb_mem = mem_check()
+    print(f"DIIS-10 AvlMem: {avlb_mem:.2f}GB ") 
+    amp1 = np.zeros((sizeA1),dtype=amp_type)
+    amp2 = np.zeros((sizeA2),dtype=amp_type)
+    # t1d = np.zeros((len(st1[0])),dtype=amp_type)
+    # t2d = np.zeros((len(st2[0])),dtype=amp_type)
+    tot_mem, avlb_mem = mem_check()
+    print(f"DIIS-11 AvlMem: {avlb_mem:.2f}GB ") 
+    st1 = list(np.load(f"{scratch}/{molecule}-DIISa1.npy"))
+    st2 = list(np.load(f"{scratch}/{molecule}-DIISa2.npy"))
+    print(f"st1 again {amp1.shape} {np.size(st1)} {len(st1)} \n ")
     for p in range(MaxD-1):
-      t1d += np.array(st1[p+1]) * csol[p]
-      t2d += np.array(st2[p+1]) * csol[p]
-    amp1 = np.reshape(t1d,((2*O),(2*V)))
-    amp2 = np.reshape(t2d,((2*O),(2*O),(2*V),(2*V)))
-    del t1d, t2d
+      amp1 += np.array(st1[p+1]) * csol[p]
+      amp2 += np.array(st2[p+1]) * csol[p]
+      # t1d += np.array(st1[p+1]) * csol[p]
+      # t2d += np.array(st2[p+1]) * csol[p]
+    del st1, st2
+    tot_mem, avlb_mem = mem_check()
+    print(f"DIIS-12 AvlMem: {avlb_mem:.2f}GB ") 
+    amp1 = np.reshape(amp1,((2*O),(2*V)))
+    amp2 = np.reshape(amp2,((2*O),(2*O),(2*V),(2*V)))
+    tot_mem, avlb_mem = mem_check()
+    print(f"DIIS-13 AvlMem: {avlb_mem:.2f}GB ") 
+    # del t1d, t2d
     DoDIIS = "T"
+  else:
+    del st1, st2
+
+  # if len1==MaxD and (Iter%RepD==0):
+  #   del amp1, amp2
+  #   B = np.zeros((MaxD,MaxD),dtype=amp_type)
+  #   B[:MaxD-1,:MaxD-1] += np.einsum('ik,jk->ij',np.conjugate(e_DIIS),e_DIIS,optimize=True)
+  #   del e_DIIS
+  #   tot_mem, avlb_mem = mem_check()
+  #   print(f"DIIS-9 AvlMem: {avlb_mem:.2f}GB ") 
+  #   B[MaxD-1,:] = 1
+  #   B[:,MaxD-1] = 1
+  #   B[MaxD-1,MaxD-1] = 0
+  #   rhs = np.zeros(MaxD)
+  #   rhs[MaxD-1] = 1
+  #   ETest = np.max(abs(B[:MaxD-1,:MaxD-1]))
+  #   # print(f"B matrix Iter={Iter} ETest = {ETest:.2e}:\n {B}")
+  #   csol = np.linalg.solve(B,rhs)
+  #   csum = np.sum(csol[:MaxD-1])
+  #   if(abs(csum-1)>ThrD):
+  #     print(f"Issue with coefficients in DIIS: sum_C = {csum}\n")
+  #     exit()
+  #   tot_mem, avlb_mem = mem_check()
+  #   print(f"DIIS-10 AvlMem: {avlb_mem:.2f}GB ") 
+  #   amp1 = np.zeros((sizeA1),dtype=amp_type)
+  #   amp2 = np.zeros((sizeA2),dtype=amp_type)
+  #   # t1d = np.zeros((len(st1[0])),dtype=amp_type)
+  #   # t2d = np.zeros((len(st2[0])),dtype=amp_type)
+  #   tot_mem, avlb_mem = mem_check()
+  #   print(f"DIIS-11 AvlMem: {avlb_mem:.2f}GB ") 
+  #   st1 = list(np.load(f"{scratch}/{molecule}-DIISa1.npy"))
+  #   st2 = list(np.load(f"{scratch}/{molecule}-DIISa2.npy"))
+  #   print(f"st1 again {amp1.shape} {np.size(st1)} {len(st1)} \n ")
+  #   for p in range(MaxD-1):
+  #     amp1 += np.array(st1[p+1]) * csol[p]
+  #     amp2 += np.array(st2[p+1]) * csol[p]
+  #     # t1d += np.array(st1[p+1]) * csol[p]
+  #     # t2d += np.array(st2[p+1]) * csol[p]
+  #   del st1, st2
+  #   tot_mem, avlb_mem = mem_check()
+  #   print(f"DIIS-12 AvlMem: {avlb_mem:.2f}GB ") 
+  #   amp1 = np.reshape(amp1,((2*O),(2*V)))
+  #   amp2 = np.reshape(amp2,((2*O),(2*O),(2*V),(2*V)))
+  #   tot_mem, avlb_mem = mem_check()
+  #   print(f"DIIS-13 AvlMem: {avlb_mem:.2f}GB ") 
+  #   # del t1d, t2d
+  #   DoDIIS = "T"
     # if ETest >= ThrD:
     #   csol = np.linalg.solve(B,rhs)
     #   csum = np.sum(csol[:MaxD-1])
@@ -497,10 +611,6 @@ def DIIS(scratch,molecule,O,V,Iter,MaxD,Thr,RepD,amp1,amp2):
     #   amp2 = np.reshape(t2d,((2*O),(2*O),(2*V),(2*V)))
     #   del t1d, t2d
     #   DoDIIS = "T"
-  np.save(f"{scratch}/{molecule}-DIISa1",st1)
-  np.save(f"{scratch}/{molecule}-DIISa2",st2)
-  np.save(f"{scratch}/{molecule}-DIISe",e_DIIS)
-  del st1, st2, e_DIIS
   return amp1, amp2, DoDIIS
 
 ##########################################################################
@@ -774,20 +884,58 @@ def Const_Interm(T,molecule,scratch,Nkp,t1,t2,tau,IJAB,IABJ,IJKA,IABC,
     # paper, at the cost of doing a o2v4 contraction once. The
     # tilde-W_nmij is already as in the paper, as we already doubled
     # the IJAB contribution for the t2 equations.
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-1, AvlMem: {avlb_mem:.2f}GB ") 
     if(f"{scratch}/{molecule}-Wabef.npy"):
       print(f"Wabef from disk in Const_Interm")
       W_abef = np.load(f"{scratch}/{molecule}-Wabef.npy")
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-2, AvlMem: {avlb_mem:.2f}GB ") 
     W_abef -= np.einsum('ma,mbef->abef',t1,IABC,optimize=True)
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-3, AvlMem: {avlb_mem:.2f}GB ") 
     X1 = np.transpose(IABC,axes=(1,0,2,3))
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-4, AvlMem: {avlb_mem:.2f}GB ") 
     W_abef += np.einsum('mb,amef->abef',t1,X1,optimize=True)
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-5, AvlMem: {avlb_mem:.2f}GB ") 
     del X1
-    W_abef += 0.5*np.einsum('mnab,mnef->abef',tau,IJAB,optimize=True)/Nkp
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-5.1, AvlMem: {avlb_mem:.2f}GB {np.size(tau)} {np.size(IJAB)} {np.size(W_abef)}") 
+    X1 = np.transpose(tau,axes=(2,3,0,1))
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-5.2, AvlMem: {avlb_mem:.2f}GB {np.size(tau)} {np.size(IJAB)} {np.size(W_abef)}") 
+    X2 = np.transpose(IJAB,axes=(2,3,0,1))
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-5.3, AvlMem: {avlb_mem:.2f}GB {np.size(tau)} {np.size(IJAB)} {np.size(W_abef)}") 
+    v4gb = np.size(W_abef)*8/(1024**3)
+    if(avlb_mem < 2*v4gb):
+      lena = W_abef.shape[0]
+      print(f"Do the contraction the slow way {lena} {W_abef.shape}")
+      for a in range(lena):
+        W_abef[a,:,:,:] +=  0.5*np.einsum('bmn,efmn->bef',X1[a,:,:,:],X2,optimize=True)/Nkp
+    else:
+      W_abef += 0.5*np.einsum('abmn,efmn->abef',X1,X2,optimize=True)/Nkp
+    del X1, X2
+    # W_abef += 0.5*np.einsum('mnab,mnef->abef',tau,IJAB,optimize=True)/Nkp
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-6, AvlMem: {avlb_mem:.2f}GB ") 
     W_mbej += 0.5*np.einsum('nmfe,jnbf->mbej',IJAB,t2,optimize=True)/Nkp
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-7, AvlMem: {avlb_mem:.2f}GB ") 
     # These intermediates are new
     W_efam = np.einsum('mnef,na->efam',t2,F_me,optimize=True)
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-8, AvlMem: {avlb_mem:.2f}GB ") 
     W_efam -= np.transpose(np.conjugate(IABC),axes=(2,3,1,0)) 
+    tot_mem, avlb_mem = mem_check()
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-9, AvlMem: {avlb_mem:.2f}GB ") 
 #    W_efam -= np.transpose(IABC,axes=(2,3,1,0)) 
     W_efam += np.einsum('efag,mg->efam',W_abef,t1,optimize=True)
+    tot_mem, avlb_mem = mem_check()
+    print(f"Wabef-10, AvlMem: {avlb_mem:.2f}GB ") 
     if(f"{scratch}/{molecule}-Wabef.npy"):
       print(f"Wabef to disk in Const_Interm")
       np.save(f"{scratch}/{molecule}-Wabef",W_abef)
